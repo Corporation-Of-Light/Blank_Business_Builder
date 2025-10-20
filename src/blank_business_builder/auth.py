@@ -18,6 +18,13 @@ from sqlalchemy.orm import Session
 import os
 
 from .database import get_db, User
+from .bbb_security_suite import (
+    InjectionPrevention,
+    PasswordValidator,
+    XSSPrevention,
+    InputValidator,
+    security_config
+)
 
 # Security configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
@@ -307,13 +314,18 @@ def require_license_access(current_user: User = Depends(get_current_user)) -> Us
 def require_quantum_access(current_user: User = Depends(require_license_access)) -> User:
     """Ensure the current user can access quantum capabilities.
 
-    Quantum features require either:
-    1. 50% revenue share agreement, OR
-    2. Purchased full license
+    Quantum features require Pro tier subscription.
     """
     # License check already done by require_license_access dependency
-    # All licensed/revenue_share users get quantum features
-    return current_user
+    # Now check for Pro tier specifically
+    if current_user.subscription_tier == "pro":
+        return current_user
+
+    # Starter tier users must upgrade
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Quantum features require Pro tier subscription. Upgrade to Pro to access quantum-optimized features."
+    )
 
 
 # Rate limiting decorator

@@ -1,0 +1,54 @@
+{
+  "timestamp": "2025-10-19T16:59:44.676642",
+  "accuracy_score": 0.7540933333333332,
+  "confidence_interval": [
+    0.7374266666666665,
+    0.7707599999999999
+  ],
+  "quantum_advantage": 0.33333333333333337,
+  "risk_adjusted_return": 80.24000000000001,
+  "optimal_businesses": [
+    {
+      "name": "AI Kindle eBook Empire",
+      "monthly_revenue": 1500.0,
+      "automation_level": 0.98,
+      "quantum_score": 0.33333333333333337,
+      "success_rate": 0.75
+    },
+    {
+      "name": "AI Prompt Marketplace",
+      "monthly_revenue": 800.0,
+      "automation_level": 0.99,
+      "quantum_score": 0.33333333333333337,
+      "success_rate": 0.7
+    },
+    {
+      "name": "Crypto Arbitrage Bot",
+      "monthly_revenue": 600.0,
+      "automation_level": 1.0,
+      "quantum_score": 0.33333333333333337,
+      "success_rate": 0.65
+    },
+    {
+      "name": "Pinterest Affiliate Marketing",
+      "monthly_revenue": 1200.0,
+      "automation_level": 0.92,
+      "quantum_score": 0.33333333333333337,
+      "success_rate": 0.78
+    },
+    {
+      "name": "Notion Templates Store",
+      "monthly_revenue": 1800.0,
+      "automation_level": 0.98,
+      "quantum_score": 0.33333333333333337,
+      "success_rate": 0.82
+    }
+  ],
+  "portfolio_recommendation": {
+    "AI Kindle eBook Empire": 0.19999999999999998,
+    "AI Prompt Marketplace": 0.19999999999999998,
+    "Crypto Arbitrage Bot": 0.19999999999999998,
+    "Pinterest Affiliate Marketing": 0.19999999999999998,
+    "Notion Templates Store": 0.19999999999999998
+  }
+}

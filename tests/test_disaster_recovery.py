@@ -9,6 +9,9 @@ import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 
+# Import centralized test fixtures from conftest.py
+from .conftest import client
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -23,7 +26,6 @@ from blank_business_builder.disaster_recovery import (
     FailoverOrchestrator,
     DisasterRecoveryOrchestrator
 )
-
 
 class TestBackupEngine:
     """Test suite for BackupEngine."""
@@ -169,7 +171,6 @@ class TestBackupEngine:
 
         assert len(engine.backup_history) == initial_count + 1
 
-
 class TestFailoverOrchestrator:
     """Test suite for FailoverOrchestrator."""
 
@@ -310,7 +311,6 @@ class TestFailoverOrchestrator:
         assert len(orchestrator.failover_history) > 0
         assert orchestrator.failover_history[0].trigger == "test"
 
-
 class TestDisasterRecoveryOrchestrator:
     """Test suite for DisasterRecoveryOrchestrator."""
 
@@ -422,7 +422,6 @@ class TestDisasterRecoveryOrchestrator:
         assert metrics["backup_metrics"]["total_backups"] > 0
         assert metrics["current_status"]["total_instances"] == 2
 
-
 class TestBackupMetadata:
     """Test suite for BackupMetadata data model."""
 
@@ -447,7 +446,6 @@ class TestBackupMetadata:
         assert metadata.strategy == BackupStrategy.S3
         assert metadata.encryption_enabled is True
 
-
 class TestHealthCheck:
     """Test suite for HealthCheck data model."""
 
@@ -466,7 +464,6 @@ class TestHealthCheck:
         assert health.status == "healthy"
         assert health.latency_ms == 15.5
         assert health.auto_failover is False
-
 
 class TestFailoverEvent:
     """Test suite for FailoverEvent data model."""
@@ -488,7 +485,6 @@ class TestFailoverEvent:
         assert event.trigger == "auto_health_check"
         assert event.success is True
         assert event.duration_seconds < 30  # Under RTO target
-
 
 # Integration Tests
 class TestDisasterRecoveryIntegration:
@@ -585,7 +581,6 @@ class TestDisasterRecoveryIntegration:
 
         assert restore_result["success"] is True
 
-
 class TestRecoveryTimeObjectives:
     """Test suite for RTO/RPO compliance."""
 
@@ -618,7 +613,6 @@ class TestRecoveryTimeObjectives:
         # Backup should be fresh (just created)
         age = (datetime.utcnow() - backup.timestamp).total_seconds()
         assert age < 60  # Less than 1 minute old
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

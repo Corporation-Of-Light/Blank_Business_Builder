@@ -8,6 +8,9 @@ import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 
+# Import centralized test fixtures from conftest.py
+from .conftest import client
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -20,7 +23,6 @@ from blank_business_builder.multi_channel_marketing import (
     MultiChannelCampaignOrchestrator,
     MarketingAutomationEngine
 )
-
 
 class TestCampaignMetrics:
     """Test suite for CampaignMetrics."""
@@ -84,7 +86,6 @@ class TestCampaignMetrics:
         )
 
         assert metrics.cost_per_acquisition == 50.0  # 1000/20
-
 
 class TestMultiChannelCampaignOrchestrator:
     """Test suite for MultiChannelCampaignOrchestrator."""
@@ -352,7 +353,6 @@ class TestMultiChannelCampaignOrchestrator:
         assert "by_channel" in analytics
         assert analytics["overall_metrics"]["impressions"] >= 1000
 
-
 class TestMarketingAutomationEngine:
     """Test suite for MarketingAutomationEngine."""
 
@@ -449,7 +449,6 @@ class TestMarketingAutomationEngine:
         # All channels should have metrics initialized
         assert len(campaign.metrics) == len(campaign.channels)
 
-
 class TestMarketingContent:
     """Test suite for MarketingContent data model."""
 
@@ -467,7 +466,6 @@ class TestMarketingContent:
         assert content.channel == Channel.EMAIL
         assert content.subject == "Test Email"
         assert content.call_to_action == "Click Here"
-
 
 class TestCampaign:
     """Test suite for Campaign data model."""
@@ -497,7 +495,6 @@ class TestCampaign:
         assert campaign.goal == "leads"
         assert len(campaign.channels) == 2
         assert campaign.budget == 5000.0
-
 
 # Integration Tests
 class TestMarketingIntegration:
@@ -604,7 +601,6 @@ class TestMarketingIntegration:
         assert new_allocation[Channel.GOOGLE_ADS] > new_allocation[Channel.LINKEDIN]
         assert new_allocation[Channel.EMAIL] > new_allocation[Channel.LINKEDIN]
 
-
 class TestChannelEnum:
     """Test suite for Channel enum."""
 
@@ -616,7 +612,6 @@ class TestChannelEnum:
         assert Channel.FACEBOOK.value == "facebook"
         assert Channel.GOOGLE_ADS.value == "google_ads"
 
-
 class TestCampaignStatusEnum:
     """Test suite for CampaignStatus enum."""
 
@@ -625,7 +620,6 @@ class TestCampaignStatusEnum:
         assert CampaignStatus.DRAFT.value == "draft"
         assert CampaignStatus.RUNNING.value == "running"
         assert CampaignStatus.COMPLETED.value == "completed"
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

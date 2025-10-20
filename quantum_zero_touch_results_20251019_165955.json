@@ -1,0 +1,54 @@
+{
+  "timestamp": "2025-10-19T16:59:55.562482",
+  "accuracy_score": 0.99,
+  "confidence_interval": [
+    0.9437059999999999,
+    1.036294
+  ],
+  "quantum_advantage": 0.92588,
+  "risk_adjusted_return": 22.727272727272727,
+  "optimal_businesses": [
+    {
+      "name": "Etsy Digital Printables",
+      "monthly_revenue": 2500.0,
+      "automation_level": 0.94,
+      "quantum_score": 0.9682999999999999,
+      "success_rate": 0.85
+    },
+    {
+      "name": "AI-Powered Niche Blog",
+      "monthly_revenue": 3000.0,
+      "automation_level": 0.9,
+      "quantum_score": 0.956,
+      "success_rate": 0.8
+    },
+    {
+      "name": "Notion Templates Store",
+      "monthly_revenue": 1800.0,
+      "automation_level": 0.98,
+      "quantum_score": 0.938,
+      "success_rate": 0.82
+    },
+    {
+      "name": "AI Kindle eBook Empire",
+      "monthly_revenue": 1500.0,
+      "automation_level": 0.98,
+      "quantum_score": 0.9011,
+      "success_rate": 0.75
+    },
+    {
+      "name": "Pinterest Affiliate Marketing",
+      "monthly_revenue": 1200.0,
+      "automation_level": 0.92,
+      "quantum_score": 0.8660000000000002,
+      "success_rate": 0.78
+    }
+  ],
+  "portfolio_recommendation": {
+    "Etsy Digital Printables": 0.20916317449345484,
+    "AI-Powered Niche Blog": 0.20650624270963838,
+    "Notion Templates Store": 0.2026180498552728,
+    "AI Kindle eBook Empire": 0.19464725450382336,
+    "Pinterest Affiliate Marketing": 0.18706527843781054
+  }
+}

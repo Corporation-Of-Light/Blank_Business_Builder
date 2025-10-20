@@ -3,15 +3,9 @@ Better Business Builder - Authentication Tests
 Copyright (c) 2025 Joshua Hendricks Cole (DBA: Corporation of Light). All Rights Reserved. PATENT PENDING.
 """
 import pytest
-from datetime import timedelta
+from datetime import timedelta, datetime
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
-from blank_business_builder.main import app
-from blank_business_builder.database import Base, get_db
 from blank_business_builder.auth import (
     AuthService,
     RoleBasedAccessControl,
@@ -19,37 +13,11 @@ from blank_business_builder.auth import (
     require_quantum_access,
     rate_limit
 )
+from blank_business_builder.database import User
 
-# Test database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-client = TestClient(app)
-
-
-@pytest.fixture(autouse=True)
-def setup_database():
-    """Create and teardown test database for each test."""
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
+# Import centralized test fixtures from conftest.py
+# client, db_session, sample_user, pro_user are provided by conftest
+from .conftest import client
 
 
 class TestAuthentication:

@@ -4,44 +4,12 @@ Copyright (c) 2025 Joshua Hendricks Cole (DBA: Corporation of Light). All Rights
 """
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from blank_business_builder.main import app
 from blank_business_builder.database import Base, get_db, User
 
-# Test database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-client = TestClient(app)
-
-
-@pytest.fixture(autouse=True)
-def setup_database():
-    """Create and teardown test database for each test."""
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-
+# Import centralized test fixtures from conftest.py
+from .conftest import client
 
 @pytest.fixture
 def authenticated_user():
@@ -56,7 +24,6 @@ def authenticated_user():
     )
     token = response.json()["access_token"]
     return {"token": token, "email": "test@example.com"}
-
 
 class TestBusinessOperations:
     """Test business CRUD operations."""
@@ -157,7 +124,6 @@ class TestBusinessOperations:
         assert response2.status_code == 403
         assert "limit" in response2.json()["detail"].lower()
 
-
 class TestAIGeneration:
     """Test AI-powered content generation."""
 
@@ -200,7 +166,6 @@ class TestAIGeneration:
         )
 
         assert response.status_code == 403
-
 
 class TestBusinessValidation:
     """Test business data validation."""

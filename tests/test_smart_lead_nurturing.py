@@ -8,6 +8,9 @@ import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 
+# Import centralized test fixtures from conftest.py
+from .conftest import client
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -18,7 +21,6 @@ from blank_business_builder.smart_lead_nurturing import (
     LeadNurturingEngine,
     AutomatedFollowUpSystem
 )
-
 
 class TestSmartLeadScorer:
     """Test suite for SmartLeadScorer."""
@@ -149,7 +151,6 @@ class TestSmartLeadScorer:
         # Recent activity should score higher
         assert recent_score > old_score
 
-
 class TestLeadNurturingEngine:
     """Test suite for LeadNurturingEngine."""
 
@@ -256,7 +257,6 @@ class TestLeadNurturingEngine:
 
         # High score should have higher probability
         assert high_prob > low_prob
-
 
 class TestAutomatedFollowUpSystem:
     """Test suite for AutomatedFollowUpSystem."""
@@ -391,7 +391,6 @@ class TestAutomatedFollowUpSystem:
         # Should schedule for all leads
         assert len(scheduled) == len(leads)
 
-
 class TestLeadModel:
     """Test suite for Lead data model."""
 
@@ -427,7 +426,6 @@ class TestLeadModel:
         assert lead.company is None
         assert lead.last_contact is None
 
-
 class TestNurturingActionModel:
     """Test suite for NurturingAction data model."""
 
@@ -446,7 +444,6 @@ class TestNurturingActionModel:
         assert action.priority == 8
         assert 0 <= action.expected_impact <= 1
         assert 0 <= action.confidence <= 1
-
 
 # Integration Tests
 class TestLeadNurturingIntegration:
@@ -533,7 +530,6 @@ class TestLeadNurturingIntegration:
             hot_interactions
         )
         assert stage3 == "hot"
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

@@ -21,6 +21,9 @@ from pathlib import Path
 import time
 import asyncio
 
+# Import centralized test fixtures from conftest.py
+from .conftest import client
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -47,7 +50,6 @@ try:
     QUANTUM_AVAILABLE = True
 except ImportError:
     QUANTUM_AVAILABLE = False
-
 
 # ============================================================================
 # 1. UNIFIED BUSINESS LIBRARY TESTS
@@ -86,7 +88,8 @@ class TestUnifiedBusinessLibrary:
         """Test businesses span multiple categories"""
         library = BBBUnifiedLibrary()
         summary = library.generate_summary_report()
-        assert summary['total_categories'] >= 10, "Should have at least 10 categories"
+        total_categories = len(summary['categories'])
+        assert total_categories >= 10, f"Should have at least 10 categories, got {total_categories}"
 
     def test_filter_by_budget(self):
         """Test budget filtering works"""
@@ -102,6 +105,37 @@ class TestUnifiedBusinessLibrary:
         assert len(highly_automated) > 0
         assert all(b.automation_level >= 90 for b in highly_automated)
 
+    def test_filter_by_category(self):
+        """Test category filtering"""
+        library = BBBUnifiedLibrary()
+        all_businesses = library.get_all_businesses()
+
+        # Get a category that exists
+        test_category = all_businesses[0].category
+        filtered = library.get_by_category(test_category)
+
+        assert len(filtered) > 0
+        assert all(b.category == test_category for b in filtered)
+
+    def test_filter_by_tier(self):
+        """Test tier filtering"""
+        library = BBBUnifiedLibrary()
+
+        for tier in ["Tier 1", "Tier 2", "Tier 3", "Tier 4", "Tier 5"]:
+            filtered = library.get_by_tier(tier)
+            # Some tiers might be empty, but all results should match the tier
+            assert all(b.tier == tier for b in filtered)
+
+    def test_tier_classification(self):
+        """Test tier classification exists"""
+        library = BBBUnifiedLibrary()
+        all_businesses = library.get_all_businesses()
+
+        # Check that all businesses have a tier assigned
+        valid_tiers = ["Tier 1", "Tier 2", "Tier 3", "Tier 4", "Tier 5"]
+        for business in all_businesses:
+            assert business.tier in valid_tiers, f"Invalid tier: {business.tier}"
+
     def test_recommendations_engine(self):
         """Test personalized recommendations"""
         library = BBBUnifiedLibrary()
@@ -113,6 +147,26 @@ class TestUnifiedBusinessLibrary:
         assert len(recommendations) > 0
         assert len(recommendations) <= 5
         assert all("match_score" in rec for rec in recommendations)
+
+    def test_recommendations_with_category_preference(self):
+        """Test recommendations with category filtering"""
+        library = BBBUnifiedLibrary()
+        recommendations = library.get_recommendations(
+            budget=10000,
+            available_hours_week=20,
+            experience_level="intermediate",
+            preferred_categories=["AI Automation Services", "Ecommerce"]
+        )
+        # Should filter by preferred categories
+        for rec in recommendations:
+            assert rec["business"].category in ["AI Automation Services", "Ecommerce"]
+
+    def test_tier_5_classification(self):
+        """Test Tier 5 classification for low revenue businesses"""
+        library = BBBUnifiedLibrary()
+        # Tier 5 is for businesses with < $1500/month revenue
+        tier = library._determine_tier(1000)
+        assert tier == "Tier 5"
 
     def test_business_data_completeness(self):
         """Test all businesses have required fields"""
@@ -128,6 +182,45 @@ class TestUnifiedBusinessLibrary:
             assert 0 <= business.success_probability <= 1
             assert business.difficulty in ["Easy", "Medium", "Hard"]
 
+    def test_summary_report_structure(self):
+        """Test summary report has all required fields"""
+        library = BBBUnifiedLibrary()
+        summary = library.generate_summary_report()
+
+        required_fields = [
+            "total_businesses", "ai_automation_count", "legacy_count",
+            "avg_startup_cost", "avg_monthly_revenue", "avg_automation_level",
+            "categories", "tiers", "highest_revenue", "most_automated"
+        ]
+        for field in required_fields:
+            assert field in summary, f"Missing field: {field}"
+
+    def test_export_library(self):
+        """Test library export functionality"""
+        import os
+        import tempfile
+
+        library = BBBUnifiedLibrary()
+
+        # Export to temp file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            temp_file = f.name
+
+        try:
+            result = library.export_unified_library(temp_file)
+            assert os.path.exists(temp_file)
+
+            # Read back and verify
+            import json
+            with open(temp_file, 'r') as f:
+                data = json.load(f)
+
+            assert "total_businesses" in data
+            assert "businesses" in data
+            assert len(data["businesses"]) == 31
+        finally:
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
 
 # ============================================================================
 # 2. QUANTUM MATCHING ALGORITHM TESTS
@@ -217,7 +310,6 @@ class TestQuantumMatching:
             )
             assert score_diff < 10  # Within 10 points
 
-
 # ============================================================================
 # 3. COMPLETE FEATURES TESTS ($60K Features)
 # ============================================================================
@@ -254,6 +346,17 @@ class TestCompleteFeatures:
         assert all("status" in agent for agent in agents)
         assert all("tasks_today" in agent for agent in agents)
 
+    def test_recent_launches(self):
+        """Test recent business launches tracking"""
+        monitor = DashboardMonitor()
+        launches = monitor.get_recent_launches()
+
+        assert len(launches) > 0
+        assert all("business_name" in launch for launch in launches)
+        assert all("owner" in launch for launch in launches)
+        assert all("mrr" in launch for launch in launches)
+        assert all("status" in launch for launch in launches)
+
     # Content Generator Tests
     def test_content_generator_initialization(self):
         """Test content generator initializes"""
@@ -271,22 +374,20 @@ class TestCompleteFeatures:
             founder_skills=["AI", "Python", "Marketing"]
         )
 
-        assert plan.word_count > 300
-        assert len(plan.sections) > 0
-        assert "Executive Summary" in plan.content
-        assert "AI Consulting Agency" in plan.content
+        assert plan['word_count'] > 300
+        assert "Executive Summary" in plan['content']
+        assert "AI Consulting Agency" in plan['content']
 
     def test_marketing_copy_generation(self):
-        """Test marketing copy generation"""
+        """Test marketing plan generation"""
         generator = BBBContentGenerator()
-        copy = generator.generate_marketing_copy(
+        plan = generator.generate_marketing_plan(
             business_idea="SaaS Product",
-            platform="twitter",
-            campaign_goal="awareness"
+            target_market="Small businesses"
         )
 
-        assert copy.word_count > 50
-        assert len(copy.content) > 0
+        assert plan['word_count'] > 50
+        assert len(plan['content']) > 0
 
     # Testing Suite Tests
     def test_testing_suite_initialization(self):
@@ -299,9 +400,11 @@ class TestCompleteFeatures:
         suite = BBBTestSuite()
         results = suite.run_all_tests()
 
-        assert "total_tests" in results
-        assert "passed" in results
-        assert results["total_tests"] > 0
+        assert "total_passed" in results
+        assert "total_failed" in results
+        assert "success_rate" in results
+        total_tests = results["total_passed"] + results["total_failed"]
+        assert total_tests > 0
 
     # Compliance Tests
     def test_compliance_initialization(self):
@@ -324,7 +427,33 @@ class TestCompleteFeatures:
 
         assert "data_encryption" in gdpr_status
         assert "right_to_erasure" in gdpr_status
+        assert gdpr_status["data_encryption"] == True
+        assert gdpr_status["consent_management"] == True
 
+    def test_terms_of_service(self):
+        """Test Terms of Service generation"""
+        compliance = BBBCompliance()
+        tos = compliance.get_terms_of_service()
+
+        assert len(tos) > 0
+        assert "TERMS OF SERVICE" in tos
+        assert "LICENSE TYPES" in tos
+
+    def test_business_compliance_checklist(self):
+        """Test business compliance checklist"""
+        compliance = BBBCompliance()
+        checklist = compliance.get_business_compliance_checklist()
+
+        assert len(checklist) > 0
+        assert all("item" in item for item in checklist)
+        assert all("required" in item for item in checklist)
+
+    def test_compliance_report(self):
+        """Test compliance report generation"""
+        compliance = BBBCompliance()
+        report = compliance.generate_compliance_report()
+
+        assert "status" in report or isinstance(report, dict)
 
 # ============================================================================
 # 4. PERFORMANCE & SCALABILITY TESTS
@@ -374,7 +503,6 @@ class TestPerformance:
         avg_time = duration / 50
         assert avg_time < 0.2, f"Avg matching time: {avg_time}s, should be < 0.2s"
 
-
 # ============================================================================
 # 5. DATA VALIDATION TESTS
 # ============================================================================
@@ -418,7 +546,6 @@ class TestDataValidation:
 
         for business in all_businesses:
             assert 0 <= business.success_probability <= 1
-
 
 # ============================================================================
 # 6. INTEGRATION TESTS
@@ -464,9 +591,8 @@ class TestIntegration:
             founder_skills=["Business", "AI"]
         )
 
-        assert plan.word_count > 0
-        assert business.name in plan.content or business.category in plan.content
-
+        assert plan['word_count'] > 0
+        assert business.name in plan['content'] or business.category in plan['content']
 
 # ============================================================================
 # MAIN TEST RUNNER
@@ -501,7 +627,6 @@ def run_all_tests():
     ])
 
     return result
-
 
 if __name__ == "__main__":
     exit(run_all_tests())

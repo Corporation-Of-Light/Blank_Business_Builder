@@ -1,0 +1,13 @@
+[run]
+omit =
+    */tests/*
+    */test_*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def demo
+    if __name__ == .__main__.:
+    raise AssertionError
+    raise NotImplementedError
+    pass

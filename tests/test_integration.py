@@ -11,6 +11,9 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
+# Import centralized test fixtures from conftest.py
+from .conftest import client
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -32,7 +35,6 @@ from blank_business_builder.multi_channel_marketing import (
     MultiChannelCampaignOrchestrator,
     MarketingAutomationEngine
 )
-
 
 class TestEndToEndBusinessWorkflow:
     """Test complete end-to-end business workflows."""
@@ -368,7 +370,6 @@ class TestEndToEndBusinessWorkflow:
         # Email should get more budget (highest ROI)
         assert optimized_allocation[Channel.EMAIL] > initial_allocation[Channel.EMAIL]
 
-
 class TestScalabilityAndPerformance:
     """Test system scalability and performance."""
 
@@ -442,7 +443,6 @@ class TestScalabilityAndPerformance:
             analytics = engine.orchestrator.get_campaign_analytics(campaign_id)
             assert analytics["overall_metrics"]["impressions"] > 0
 
-
 class TestErrorHandlingAndRecovery:
     """Test error handling and recovery scenarios."""
 
@@ -506,7 +506,6 @@ class TestErrorHandlingAndRecovery:
         # If failover failed, active should remain unchanged
         if not event.success:
             assert orchestrator.active_instance == original_active
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
