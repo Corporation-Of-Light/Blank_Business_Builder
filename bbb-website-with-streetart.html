@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Better Business Builder - AI-Powered Business Planning with Street Art Aesthetic</title>
+    <meta name="description" content="BBB: AI-powered business planning for the modern entrepreneur. Built by creators, for creators.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a1a1a;
+            --secondary: #f39c12;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #27ae60;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            color: var(--primary);
+            background: var(--light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Street Art Hero */
+        .streetart-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--dark) 100%);
+            color: white;
+            padding: 6rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .streetart-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><style>.st0{fill:none;stroke:%23f39c12;stroke-width:2;stroke-linecap:round;}.st1{fill:%23e74c3c;opacity:0.1;}</style></defs><circle cx="100" cy="100" r="95" class="st1"/><path class="st0" d="M50,100 Q75,50 100,60 T150,100" stroke-linecap="round"/><path class="st0" d="M60,120 L140,120"/><circle cx="100" cy="100" r="20" class="st0"/></svg>');
+            opacity: 0.15;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .streetart-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--secondary),
+                var(--secondary) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            opacity: 0.2;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 3px 3px 0 var(--secondary), 6px 6px 0 var(--accent);
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Street Art Style Buttons */
+        .btn-street {
+            background: var(--secondary);
+            color: var(--primary);
+            border: 3px solid var(--primary);
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 5px 5px 0 var(--primary);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-street:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0 var(--primary);
+        }
+
+        .btn-street.alt {
+            background: white;
+            color: var(--secondary);
+        }
+
+        /* Street Art Cards */
+        .card-street {
+            background: white;
+            border: 4px solid var(--primary);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .card-street:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 12px 12px 0 rgba(0, 0, 0, 0.15);
+        }
+
+        .card-street::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: var(--secondary);
+            width: 15px;
+            height: 15px;
+            transform: rotate(45deg);
+        }
+
+        .card-street h3 {
+            color: var(--secondary);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Street Art Typography */
+        .section-title {
+            font-size: 3rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 3rem;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            color: var(--primary);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 5px;
+            background: var(--secondary);
+            margin: 1rem auto 0;
+            animation: stretchWidth 0.6s ease-out;
+        }
+
+        @keyframes stretchWidth {
+            from { width: 0; }
+            to { width: 100px; }
+        }
+
+        /* Sections */
+        section {
+            padding: 4rem 0;
+        }
+
+        section:nth-child(odd) {
+            background: var(--light);
+        }
+
+        section:nth-child(even) {
+            background: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        /* Street Art Stencil Effect */
+        .stencil {
+            position: relative;
+            font-weight: bold;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            opacity: 0.85;
+        }
+
+        .stencil::before {
+            content: attr(data-text);
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            color: rgba(0, 0, 0, 0.1);
+            z-index: -1;
+        }
+
+        /* Feature Icons - Street Art Style */
+        .icon-street {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(3px 3px 0 var(--secondary));
+        }
+
+        /* Graffiti Border */
+        .graffiti-border {
+            border-left: 8px solid var(--accent);
+            border-top: 4px dashed var(--secondary);
+            border-right: 8px solid var(--secondary);
+            border-bottom: 4px dashed var(--accent);
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        /* Street Art Divider */
+        .art-divider {
+            height: 60px;
+            background: repeating-linear-gradient(
+                45deg,
+                var(--secondary),
+                var(--secondary) 10px,
+                var(--accent) 10px,
+                var(--accent) 20px
+            );
+            margin: 3rem 0;
+            opacity: 0.3;
+        }
+
+        /* Navigation */
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--secondary);
+            text-shadow: 2px 2px 0 white;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .nav-menu a:hover {
+            color: var(--secondary);
+        }
+
+        /* Footer - Street Art Style */
+        footer {
+            background: var(--primary);
+            color: white;
+            padding: 3rem 0;
+            border-top: 8px solid var(--secondary);
+            position: relative;
+        }
+
+        footer::before {
+            content: '© 2025 Better Business Builder | Built by Creators, For Creators';
+            display: block;
+            text-align: center;
+            padding-bottom: 2rem;
+            border-bottom: 2px dashed var(--secondary);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .footer-section h4 {
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--secondary);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            border: 5px solid var(--primary);
+            margin: 5% auto;
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.3);
+            animation: popIn 0.4s ease-out;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8) rotate(-5deg);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) rotate(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 4px dashed var(--secondary);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .close-btn {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: transform 0.3s;
+        }
+
+        .close-btn:hover {
+            transform: rotate(90deg) scale(1.2);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 3px solid var(--primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.2);
+            transform: translate(-2px, -2px);
+        }
+
+        /* Street Art Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            border: 4px solid var(--secondary);
+            position: relative;
+        }
+
+        .stat::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border: 2px solid var(--primary);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--secondary);
+        }
+
+        .stat-label {
+            color: var(--primary);
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2rem;
+                text-shadow: 2px 2px 0 var(--secondary), 4px 4px 0 var(--accent);
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .card-street {
+                box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+            }
+
+            .card-street:hover {
+                box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.15);
+            }
+        }
+
+        /* Badge */
+        .badge-street {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 0.5rem 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            transform: rotate(-2deg);
+            box-shadow: 3px 3px 0 var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">BBB</div>
+                <ul class="nav-menu">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+                <button class="btn-street" onclick="openModal('contactModal')">Get Started</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Street Art Hero -->
+    <section class="streetart-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Build Your Business<br/>Blueprint Now</h1>
+                <p>AI-powered planning for makers, creators, and entrepreneurs. Stop waiting. Start building.</p>
+                <div style="margin: 2rem 0;">
+                    <button class="btn-street" onclick="openModal('demoModal')">Try For Free</button>
+                    <button class="btn-street alt" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Learn More</button>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">Builders</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">98%</div>
+                        <div class="stat-label">Happy</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">50%</div>
+                        <div class="stat-label">Faster</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">AI Ready</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features">
+        <div class="container">
+            <h2 class="section-title">Powerful Features</h2>
+            <div class="grid">
+                <div class="card-street">
+                    <div class="icon-street">🚀</div>
+                    <h3>AI Generation</h3>
+                    <p>Complete business blueprints powered by machine learning. Get market analysis, competitor insights, and financial projections in minutes.</p>
+                </div>
+
+                <div class="card-street">
+                    <div class="icon-street">📊</div>
+                    <h3>Advanced Analytics</h3>
+                    <p>Quantum-inspired optimization algorithms. Maximize profits. Minimize risks. Make data-driven decisions.</p>
+                </div>
+
+                <div class="card-street">
+                    <div class="icon-street">📧</div>
+                    <h3>Marketing Automation</h3>
+                    <p>Auto-generated campaigns, email sequences, and social media strategies. All tailored to your audience.</p>
+                </div>
+
+                <div class="card-street">
+                    <div class="icon-street">💰</div>
+                    <h3>Financial Planning</h3>
+                    <p>Cash flow projections, break-even analysis, and funding requirements. Know your numbers inside-out.</p>
+                </div>
+
+                <div class="card-street">
+                    <div class="icon-street">🔄</div>
+                    <h3>Real-time Collab</h3>
+                    <p>Work together with your team. Real-time updates. Live commenting. Everything in sync.</p>
+                </div>
+
+                <div class="card-street">
+                    <div class="icon-street">🔒</div>
+                    <h3>Enterprise Security</h3>
+                    <p>Bank-level encryption. OWASP 100% compliant. Your data is safe. Always.</p>
+                </div>
+            </div>
+
+            <div class="art-divider"></div>
+
+            <h3 style="text-align: center; font-size: 1.8rem; margin-bottom: 2rem; text-transform: uppercase;">
+                <span class="badge-street">No coding required</span>
+            </h3>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="graffiti-border">
+                <div style="text-align: center;">
+                    <h3 style="color: var(--secondary); margin-bottom: 2rem; font-size: 1.5rem;">4 Steps to Success</h3>
+                    <div class="grid">
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">1️⃣</div>
+                            <h4>Tell Your Story</h4>
+                            <p>Describe your business idea, industry, and goals</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">2️⃣</div>
+                            <h4>Get Insights</h4>
+                            <p>AI analyzes market and competition</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">3️⃣</div>
+                            <h4>Get Blueprint</h4>
+                            <p>Comprehensive business plan generated</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">4️⃣</div>
+                            <h4>Customize & Export</h4>
+                            <p>Fine-tune and download your plan</p>
+                        </div>
+                    </div>
+                    <p style="margin-top: 2rem; font-weight: bold; font-size: 1.2rem;">⏱️ Complete in 15 minutes vs 3 months traditional planning</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testing & Quality -->
+    <section>
+        <div class="container">
+            <h2 class="section-title">Enterprise Quality</h2>
+            <div class="grid">
+                <div class="card-street">
+                    <div style="font-weight: bold; color: var(--secondary); font-size: 1.1rem; margin-bottom: 0.5rem;">✅ SECURITY</div>
+                    <h3 style="font-size: 1.2rem;">100% OWASP</h3>
+                    <p>29/29 security tests passing. Bank-level encryption. Zero vulnerabilities.</p>
+                </div>
+
+                <div class="card-street">
+                    <div style="font-weight: bold; color: var(--secondary); font-size: 1.1rem; margin-bottom: 0.5rem;">⚡ PERFORMANCE</div>
+                    <h3 style="font-size: 1.2rem;">&lt;100ms Response</h3>
+                    <p>Handles 1000+ requests/second. Lightning fast. Always responsive.</p>
+                </div>
+
+                <div class="card-street">
+                    <div style="font-weight: bold; color: var(--secondary); font-size: 1.1rem; margin-bottom: 0.5rem;">🎯 RELIABILITY</div>
+                    <h3 style="font-size: 1.2rem;">99.9% Uptime</h3>
+                    <p>Automated backups. Disaster recovery. We've got your back.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing">
+        <div class="container">
+            <h2 class="section-title">Pricing That Works</h2>
+            <div class="grid">
+                <div class="card-street">
+                    <h3>Starter</h3>
+                    <div style="font-size: 2.5rem; color: var(--secondary); margin: 1rem 0; font-weight: 900;">$29/mo</div>
+                    <p style="margin-bottom: 1.5rem;">Perfect for individuals</p>
+                    <ul style="list-style: none; margin-bottom: 1.5rem;">
+                        <li>✓ 5 blueprints/month</li>
+                        <li>✓ Basic analysis</li>
+                        <li>✓ Email support</li>
+                    </ul>
+                    <button class="btn-street" style="width: 100%;" onclick="openModal('contactModal')">Get Started</button>
+                </div>
+
+                <div class="card-street" style="border: 5px solid var(--secondary);">
+                    <div style="background: var(--secondary); color: var(--primary); padding: 0.5rem; margin: -2rem -2rem 1rem -2rem; font-weight: 900; text-align: center; text-transform: uppercase;">⭐ Most Popular</div>
+                    <h3>Professional</h3>
+                    <div style="font-size: 2.5rem; color: var(--secondary); margin: 1rem 0; font-weight: 900;">$99/mo</div>
+                    <p style="margin-bottom: 1.5rem;">For growing teams</p>
+                    <ul style="list-style: none; margin-bottom: 1.5rem;">
+                        <li>✓ Unlimited blueprints</li>
+                        <li>✓ Advanced analytics</li>
+                        <li>✓ Team collab (5 users)</li>
+                        <li>✓ Priority support</li>
+                    </ul>
+                    <button class="btn-street" style="width: 100%; background: var(--secondary);" onclick="openModal('contactModal')">Get Started</button>
+                </div>
+
+                <div class="card-street">
+                    <h3>Enterprise</h3>
+                    <div style="font-size: 2.5rem; color: var(--secondary); margin: 1rem 0; font-weight: 900;">Custom</div>
+                    <p style="margin-bottom: 1.5rem;">For organizations</p>
+                    <ul style="list-style: none; margin-bottom: 1.5rem;">
+                        <li>✓ Everything</li>
+                        <li>✓ Custom integration</li>
+                        <li>✓ Dedicated support</li>
+                        <li>✓ On-premise option</li>
+                    </ul>
+                    <button class="btn-street" style="width: 100%;" onclick="openModal('contactModal')">Contact Sales</button>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 2rem; font-weight: bold; color: var(--primary);">14-day free trial. No credit card. Cancel anytime.</p>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section>
+        <div class="container">
+            <h2 class="section-title">What Builders Say</h2>
+            <div class="grid">
+                <div class="card-street">
+                    <div style="font-size: 1.3rem; margin-bottom: 1rem;">⭐⭐⭐⭐⭐</div>
+                    <p style="margin-bottom: 1rem;">"Went from idea to business plan in 2 weeks instead of 3 months. The AI insights were spot-on."</p>
+                    <div style="font-weight: bold; color: var(--secondary);">— Sarah Chen, TechStartup Inc.</div>
+                </div>
+
+                <div class="card-street">
+                    <div style="font-size: 1.3rem; margin-bottom: 1rem;">⭐⭐⭐⭐⭐</div>
+                    <p style="margin-bottom: 1rem;">"Marketing automation saved us $5K in consulting fees. Conversion rates up 45%."</p>
+                    <div style="font-weight: bold; color: var(--secondary);">— James Mitchell, Growth Solutions</div>
+                </div>
+
+                <div class="card-street">
+                    <div style="font-size: 1.3rem; margin-bottom: 1rem;">⭐⭐⭐⭐⭐</div>
+                    <p style="margin-bottom: 1rem;">"Used BBB to launch 3 businesses. Best tool for identifying market opportunities."</p>
+                    <div style="font-weight: bold; color: var(--secondary);">— Maria Rodriguez, Serial Entrepreneur</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section style="background: linear-gradient(135deg, var(--primary), var(--dark));">
+        <div class="container" style="text-align: center; color: white;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1rem; text-transform: uppercase; font-weight: 900;">Ready to Build?</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">Join thousands building their businesses faster with BBB.</p>
+            <button class="btn-street" style="background: var(--secondary);" onclick="openModal('contactModal')">Start Free Trial</button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#/">Blog</a></li>
+                        <li><a href="#/">Docs</a></li>
+                        <li><a href="#/">API</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#/">Privacy</a></li>
+                        <li><a href="#/">Terms</a></li>
+                        <li><a href="#/">Security</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#/">Twitter</a></li>
+                        <li><a href="#/">GitHub</a></li>
+                        <li><a href="#/">Discord</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 3px dashed var(--secondary); color: #bbb;">
+            <p style="font-size: 0.9rem;">Part of the AIOS Suite by <strong>Corporation of Light</strong></p>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem;">Patent Pending • Open Source Friendly • Built by Creators</p>
+        </div>
+    </footer>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Get Started</h2>
+                <button class="close-btn" onclick="closeModal('contactModal')">&times;</button>
+            </div>
+            <form onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="company">Company/Project Name</label>
+                    <input type="text" id="company">
+                </div>
+                <div class="form-group">
+                    <label for="message">Tell us about your idea</label>
+                    <textarea id="message" rows="4" placeholder="What are you building?"></textarea>
+                </div>
+                <button type="submit" class="btn-street" style="width: 100%;">Request Demo</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Demo Modal -->
+    <div id="demoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Try The Demo</h2>
+                <button class="close-btn" onclick="closeModal('demoModal')">&times;</button>
+            </div>
+            <p style="margin-bottom: 1.5rem;">Experience the 4-step business blueprint wizard:</p>
+            <div style="background: var(--light); padding: 2rem; border: 3px solid var(--primary);">
+                <p style="font-weight: bold; margin-bottom: 1rem;">Step 1: Enter Your Business Details</p>
+                <input type="text" placeholder="Business Name" style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 2px solid var(--primary);">
+                <input type="text" placeholder="Industry" style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 2px solid var(--primary);">
+                <p style="color: var(--primary); margin-top: 2rem; font-size: 0.95rem;">
+                    → AI analyzes your market<br/>
+                    → Generates customized strategies<br/>
+                    → Download complete business plan<br/>
+                    <strong style="color: var(--secondary); display: block; margin-top: 1rem;">All in 15 minutes ⚡</strong>
+                </p>
+            </div>
+            <button class="btn-street" onclick="closeModal('demoModal')" style="width: 100%; margin-top: 1.5rem;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            document.getElementById(id).style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            alert('Thank you! We\'ll contact you soon. 🚀');
+            closeModal('contactModal');
+            event.target.reset();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+# BBB Website .gitignore
+# Copy this content to a file named .gitignore in your repository
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env.local
+
+# Build & Dependencies
+node_modules/
+dist/
+build/
+.cache/
+*.bundle.js
+
+# Environment
+.env
+.env.production
+.env.development
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Analytics
+.piwik
+analytics.json
+
+# Backups
+*.backup
+*.bak
+.backup/
+
+# OS
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Editor temp files
+.*.md.swp
+.*.html.swp
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Documentation
+docs/_site/
+docs/.jekyll-cache/
+
+# Secrets (IMPORTANT!)
+secrets/
+*.key
+*.pem
+private/
+.credentials
+.tokens
+
+# Keep these files
+!.gitkeep
+!.github/workflows/*.yml

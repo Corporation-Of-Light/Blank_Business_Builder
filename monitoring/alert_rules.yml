@@ -1,0 +1,150 @@
+# Better Business Builder - Prometheus Alert Rules
+# Copyright (c) 2025 Joshua Hendricks Cole (DBA: Corporation of Light). All Rights Reserved.
+
+groups:
+  - name: bbb_alerts
+    interval: 30s
+    rules:
+      # Application Health Alerts
+      - alert: BBBAPIDown
+        expr: up{job="bbb-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "BBB API is down"
+          description: "BBB API at {{ $labels.instance }} has been down for more than 2 minutes"
+
+      - alert: HighErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"5.."}[5m])) /
+           sum(rate(http_requests_total[5m]))) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% in the last 5 minutes"
+
+      # Database Alerts
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database at {{ $labels.instance }} is not responding"
+
+      - alert: PostgreSQLSlowQueries
+        expr: |
+          rate(pg_stat_statements_mean_exec_time{instance!=""}[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow queries detected"
+          description: "Average query execution time is {{ humanizeDuration $value }}"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          pg_stat_activity_count / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection pool near limit"
+          description: "{{ $value | humanizePercentage }} of database connections are in use"
+
+      # Cache Alerts
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis at {{ $labels.instance }} is not responding"
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis is using {{ humanizePercentage $value }} of available memory"
+
+      # Celery Alerts
+      - alert: CeleryWorkerDown
+        expr: up{job="bbb-celery"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Celery worker is down"
+          description: "Celery worker at {{ $labels.instance }} is not responding"
+
+      - alert: CeleryQueueBacklog
+        expr: |
+          celery_tasks_pending > 1000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High celery task queue backlog"
+          description: "{{ $value }} tasks are pending in Celery queue"
+
+      # System Alerts
+      - alert: HighCPUUsage
+        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ humanizePercentage $value }}"
+
+      - alert: HighMemoryUsage
+        expr: |
+          (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) /
+          node_memory_MemTotal_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ humanizePercentage $value }}"
+
+      - alert: DiskSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes{fstype!~"tmpfs|vfat"} /
+           node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low disk space on {{ $labels.device }}"
+          description: "Only {{ humanize $value }}% disk space available"
+
+      # Response Time Alerts
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API response time detected"
+          description: "95th percentile response time is {{ humanizeDuration $value }}"
+
+      # Deployment Alerts
+      - alert: InstanceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "{{ $labels.job }} instance has been down for more than 2 minutes"

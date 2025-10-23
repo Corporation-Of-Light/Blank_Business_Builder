@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BBB · Growth Planner</title>
+  <style>
+    :root {
+      --bg-primary: #05070f;
+      --bg-panel: rgba(12, 16, 32, 0.82);
+      --bg-panel-light: rgba(18, 24, 46, 0.78);
+      --accent-mint: #4fffd3;
+      --accent-blue: #4a8dff;
+      --accent-amber: #ffb347;
+      --text-strong: #f4f6fc;
+      --text-muted: rgba(244, 246, 252, 0.68);
+      --border: rgba(114, 130, 201, 0.4);
+      --radius: 20px;
+      --transition: all 220ms ease;
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-strong);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    canvas#backdrop {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+    }
+
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='240' height='240' viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cfilter id='perlin-rough'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='5' stitchTiles='stitch' seed='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='12' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Cfilter id='perlin-fine'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.2' numOctaves='4' stitchTiles='stitch' seed='5'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='240' height='240' fill='%23050710' opacity='0.15' filter='url(%23perlin-rough)'/%3E%3Crect width='240' height='240' filter='url(%23perlin-fine)' opacity='0.08'/%3E%3C/svg%3E");
+      background-size: 240px 240px;
+      mix-blend-mode: overlay;
+      opacity: 0.42;
+    }
+
+    main.shell {
+      position: relative;
+      z-index: 1;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: clamp(2.5rem, 4vw, 4rem) clamp(1.5rem, 3vw, 3rem) 6rem;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(1.75rem, 3vw, 3rem);
+    }
+
+    .hero {
+      padding: clamp(2rem, 3vw, 3rem);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(16, 20, 40, 0.82), rgba(10, 14, 28, 0.78));
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(74, 141, 255, 0.42), transparent 70%);
+      top: -160px;
+      right: -60px;
+    }
+
+    .hero-title {
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: inline-flex;
+      gap: 0.85rem;
+      align-items: center;
+      position: relative;
+    }
+
+    .hero-title span:last-child {
+      color: var(--accent-mint);
+    }
+
+    .hero-subtitle {
+      margin-top: 0.75rem;
+      font-size: clamp(1rem, 2.2vw, 1.4rem);
+      color: var(--text-muted);
+    }
+
+    .hero-callout {
+      margin-top: 1.2rem;
+      font-size: 1.05rem;
+    }
+
+    .hero-callout span {
+      color: var(--accent-mint);
+    }
+
+    .wizard {
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+      gap: clamp(1.5rem, 3vw, 2.5rem);
+      padding: clamp(1.75rem, 3vw, 2.5rem);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(13, 18, 36, 0.88), rgba(8, 11, 22, 0.95));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .step-visual {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .step-backdrop {
+      border-radius: 18px;
+      padding: 1.7rem;
+      min-height: 240px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(14, 18, 36, 0.92), rgba(8, 12, 24, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 60px rgba(79, 255, 211, 0.08), inset 0 0 30px rgba(74, 141, 255, 0.06);
+    }
+
+    .step-backdrop::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='perlin-step'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' fill='%234fffd3' opacity='0.04' filter='url(%23perlin-step)'/%3E%3C/svg%3E");
+      opacity: 0.5;
+      animation: backdrop-shift 12s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes backdrop-shift {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.05); }
+    }
+
+    .step-glyph {
+      position: relative;
+      z-index: 2;
+    }
+
+    .step-glyph svg {
+      width: clamp(160px, 18vw, 220px);
+      height: auto;
+      will-change: transform;
+      filter: drop-shadow(0 0 20px rgba(79, 255, 211, 0.15));
+    }
+
+    .step-context {
+      padding: 1.2rem 1.3rem;
+      border-radius: 16px;
+      background: rgba(9, 12, 24, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .step-title {
+      font-size: 0.9rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.66);
+      margin-bottom: 0.6rem;
+    }
+
+    .step-story {
+      line-height: 1.55;
+      color: rgba(226, 230, 250, 0.82);
+      font-size: 0.95rem;
+    }
+
+    .wizard-body {
+      min-height: min(520px, 72vh);
+      display: flex;
+      flex-direction: column;
+    }
+
+    form#plannerForm {
+      flex: 1;
+      display: grid;
+    }
+
+    .wizard-step {
+      display: none;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      animation: fadeIn 280ms ease;
+    }
+
+    .wizard-step.active {
+      display: grid;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.1rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      background: rgba(12, 16, 32, 0.82);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .field:hover {
+      border-color: rgba(79, 255, 211, 0.32);
+    }
+
+    .field span.label {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: rgba(255, 255, 255, 0.58);
+    }
+
+    .field small {
+      font-size: 0.75rem;
+      color: rgba(198, 210, 245, 0.6);
+    }
+
+    input,
+    select,
+    textarea {
+      background: rgba(17, 22, 40, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      color: var(--text-strong);
+      transition: var(--transition);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: rgba(79, 255, 211, 0.5);
+      box-shadow: 0 0 0 4px rgba(79, 255, 211, 0.18);
+    }
+
+    input[type="range"] {
+      padding: 0;
+      accent-color: var(--accent-mint);
+    }
+
+    .range-display {
+      position: absolute;
+      right: 1.1rem;
+      top: 1rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      color: rgba(79, 255, 211, 0.75);
+    }
+
+    .wizard-nav {
+      margin-top: auto;
+      display: flex;
+      gap: 1rem;
+      padding-top: 2rem;
+    }
+
+    .nav-btn {
+      flex: 1;
+      padding: 1rem 1.2rem;
+      border-radius: 12px;
+      border: 1px solid rgba(79, 255, 211, 0.28);
+      background: rgba(10, 14, 26, 0.92);
+      color: var(--text-strong);
+      font-size: 0.95rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .nav-btn.primary {
+      background: linear-gradient(120deg, rgba(79, 255, 211, 0.32), rgba(74, 141, 255, 0.42));
+      border-color: rgba(74, 141, 255, 0.4);
+      box-shadow: 0 0 28px rgba(74, 141, 255, 0.18);
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      border-color: rgba(79, 255, 211, 0.5);
+      box-shadow: 0 12px 28px rgba(74, 141, 255, 0.2);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .results {
+      display: grid;
+      gap: 1.8rem;
+      padding: clamp(2rem, 3vw, 3rem);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(8, 11, 22, 0.92);
+      opacity: 0;
+      transform: translateY(24px);
+      transition: var(--transition);
+    }
+
+    .results.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .results-header {
+      text-align: center;
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .results-header h2 {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+    }
+
+    .results-header p {
+      color: var(--text-muted);
+      max-width: 760px;
+      justify-self: center;
+      line-height: 1.6;
+    }
+
+    .result-gallery {
+      display: grid;
+      gap: 1.4rem;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .result-card {
+      position: relative;
+      border-radius: 18px;
+      padding: 1.8rem;
+      background: linear-gradient(140deg, rgba(14, 18, 36, 0.92), rgba(8, 11, 22, 0.92));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: var(--transition);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .result-card::before {
+      content: attr(data-rank);
+      position: absolute;
+      top: 1.2rem;
+      right: 1.4rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .result-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(79, 255, 211, 0.16), transparent 55%);
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .result-card:hover,
+    .result-card.selected {
+      transform: translateY(-4px);
+      border-color: rgba(79, 255, 211, 0.45);
+      box-shadow: 0 18px 40px rgba(79, 255, 211, 0.16);
+    }
+
+    .result-card.selected::after {
+      opacity: 1;
+    }
+
+    .result-icon {
+      font-size: 2.4rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .result-title {
+      font-size: 1.2rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .result-tagline {
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+      margin-bottom: 1.1rem;
+    }
+
+    .result-stats {
+      display: grid;
+      gap: 0.6rem;
+      font-size: 0.95rem;
+    }
+
+    .result-stats span {
+      display: flex;
+      justify-content: space-between;
+      color: rgba(226, 230, 250, 0.82);
+    }
+
+    .result-stats strong {
+      color: var(--accent-mint);
+      letter-spacing: 0.08em;
+    }
+
+    .result-meta {
+      margin-top: 1.1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .meta-pill {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(74, 141, 255, 0.14);
+      border: 1px solid rgba(74, 141, 255, 0.32);
+      font-size: 0.75rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .result-detail {
+      padding: 1.8rem;
+      border-radius: 18px;
+      background: rgba(11, 14, 26, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 1rem;
+      animation: fadeIn 300ms ease;
+      box-shadow: inset 0 0 40px rgba(79, 255, 211, 0.1);
+      max-width: 100%;
+    }
+
+    .result-detail[hidden] {
+      display: none !important;
+    }
+
+    .result-detail:not([hidden]) {
+      display: grid;
+    }
+
+    .detail-header h3 {
+      font-size: 1.25rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .detail-grid ul {
+      list-style: none;
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .detail-grid li::before {
+      content: "•";
+      color: var(--accent-mint);
+      margin-right: 0.6rem;
+    }
+
+    .detail-cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .detail-cta strong {
+      color: var(--accent-mint);
+    }
+
+    @media (max-width: 960px) {
+      .wizard {
+        grid-template-columns: 1fr;
+      }
+
+      .wizard-nav {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero-title {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .result-gallery {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="backdrop"></canvas>
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <main class="shell">
+    <header class="hero">
+      <h1 class="hero-title"><span>BBB</span><span>Growth Planner</span></h1>
+      <p class="hero-subtitle">Build an automated service business with reliable $20K+ quarterly potential.</p>
+      <p class="hero-callout">We’ll tailor three launch-ready concepts for you, <span data-alias>founder</span>.</p>
+    </header>
+
+    <section class="wizard">
+      <aside class="step-visual">
+        <div class="step-backdrop">
+          <div class="step-glyph" aria-hidden="true"></div>
+        </div>
+        <div class="step-context">
+          <h2 class="step-title">Step 01 · Profile</h2>
+          <p class="step-story">
+            Share where you operate and the industries that energize you. We match real unit economics to your market.
+          </p>
+        </div>
+      </aside>
+
+      <div class="wizard-body">
+        <form id="plannerForm" novalidate>
+          <div class="wizard-step active" data-step="0">
+            <div class="input-grid">
+              <label class="field">
+                <span class="label">Founder Name</span>
+                <input type="text" id="alias" name="alias" placeholder="e.g., Jordan Ellis" required>
+              </label>
+              <label class="field">
+                <span class="label">Operating State</span>
+                <input type="text" id="location" name="location" placeholder="City, State" required>
+              </label>
+              <label class="field">
+                <span class="label">Preferred Industry</span>
+                <select id="industry" name="industry" required>
+                  <option value="">Select industry...</option>
+                  <option value="professional-services">Professional Services</option>
+                  <option value="marketing">Marketing & Content</option>
+                  <option value="finance">Finance & Accounting</option>
+                  <option value="technology">Technology & Automation</option>
+                  <option value="healthcare">Healthcare Support</option>
+                  <option value="logistics">Operations & Logistics</option>
+                  <option value="generalist">Open to all</option>
+                </select>
+              </label>
+            </div>
+            <label class="field">
+              <span class="label">Background Snapshot</span>
+              <textarea id="background" name="background" rows="3" placeholder="Optional: certifications, networks, or experience worth factoring in."></textarea>
+            </label>
+          </div>
+
+          <div class="wizard-step" data-step="1">
+            <div class="input-grid">
+              <label class="field">
+                <span class="label">Weekly Time Capacity</span>
+                <span class="range-display" data-range-display="hours">30h</span>
+                <input type="range" id="hours" name="hours" min="5" max="60" value="30" step="1" required>
+                <small>Realistic hours you can put in each week.</small>
+              </label>
+              <label class="field">
+                <span class="label">Launch Budget</span>
+                <span class="range-display" data-range-display="budget">$5,000</span>
+                <input type="range" id="budget" name="budget" min="300" max="25000" value="5000" step="100" required>
+                <small>Cash available for licenses, tooling, or contractors.</small>
+              </label>
+            </div>
+            <label class="field">
+              <span class="label">Existing Assets</span>
+              <textarea id="assets" name="assets" rows="3" placeholder="Optional: clients, newsletters, partnerships, or tools already in place."></textarea>
+            </label>
+          </div>
+
+          <div class="wizard-step" data-step="2">
+            <div class="input-grid">
+              <label class="field">
+                <span class="label">Risk Approach</span>
+                <select id="risk" name="risk" required>
+                  <option value="">Select option...</option>
+                  <option value="conservative">Conservative · protect capital first</option>
+                  <option value="balanced">Balanced · mix of stability and upside</option>
+                  <option value="bold">Bold · prioritize growth speed</option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="label">Primary Growth Channel</span>
+                <select id="channel" name="channel" required>
+                  <option value="">Select channel...</option>
+                  <option value="content">Content & inbound marketing</option>
+                  <option value="outbound">Outbound sales & partnerships</option>
+                  <option value="automation">Automation & productized systems</option>
+                  <option value="events">Workshops & local events</option>
+                </select>
+              </label>
+            </div>
+            <label class="field">
+              <span class="label">Compliance Comfort</span>
+              <select id="compliance" name="compliance" required>
+                <option value="">Select preference...</option>
+                <option value="regulated">Prefer highly regulated industries</option>
+                <option value="standard">Comfortable with standard compliance</option>
+                <option value="light">Prefer light compliance requirements</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="wizard-step" data-step="3">
+            <div class="input-grid">
+              <label class="field">
+                <span class="label">Quarterly Objective</span>
+                <select id="objective" name="objective" required>
+                  <option value="">Select objective...</option>
+                  <option value="recurring-revenue">Recurring revenue > $20K each quarter</option>
+                  <option value="high-margin">High margin retainers with few clients</option>
+                  <option value="brand-foundation">Establish authority and pipeline</option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="label">North-Star Metric</span>
+                <select id="metric" name="metric" required>
+                  <option value="">Select metric...</option>
+                  <option value="mrr">Monthly recurring revenue</option>
+                  <option value="clients">Active paying clients</option>
+                  <option value="margin">Net margin percentage</option>
+                </select>
+              </label>
+            </div>
+            <label class="field">
+              <span class="label">Motivation Statement</span>
+              <textarea id="mantra" name="mantra" rows="3" placeholder="Optional: why you want this business to succeed."></textarea>
+            </label>
+          </div>
+        </form>
+
+        <div class="wizard-nav">
+          <button type="button" class="nav-btn" data-action="prev">Previous</button>
+          <button type="button" class="nav-btn primary" data-action="next">Next</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="results" id="resultsSection" hidden>
+      <div class="results-header">
+        <h2>Recommended Blueprints</h2>
+        <p>
+          Each concept includes realistic pricing, startup requirements, and the operating focus needed to achieve a $20K+ quarter.
+        </p>
+      </div>
+      <div class="result-gallery" id="resultGallery"></div>
+      <article class="result-detail" id="resultDetail" hidden>
+        <div class="detail-header">
+          <h3 id="detailTitle"></h3>
+          <p id="detailSubtitle"></p>
+        </div>
+        <div class="detail-grid">
+          <div>
+            <h4>Why it fits</h4>
+            <ul id="detailFit"></ul>
+          </div>
+          <div>
+            <h4>First 30-day checklist</h4>
+            <ul id="detailTasks"></ul>
+          </div>
+        </div>
+        <div class="detail-cta" id="detailCta"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    // Perlin noise implementation (Simplex-like)
+    class PerlinNoise {
+      constructor(seed = 0) {
+        this.p = [];
+        for (let i = 0; i < 256; i++) {
+          this.p[i] = Math.floor(Math.random() * 256);
+        }
+        for (let i = 0; i < 256; i++) {
+          this.p[256 + i] = this.p[i];
+        }
+      }
+
+      fade(t) {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+      }
+
+      lerp(t, a, b) {
+        return a + t * (b - a);
+      }
+
+      grad(hash, x, y) {
+        const h = hash & 15;
+        const u = h < 8 ? x : y;
+        const v = h < 8 ? y : x;
+        return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+      }
+
+      noise(x, y) {
+        const xi = Math.floor(x) & 255;
+        const yi = Math.floor(y) & 255;
+        const xf = x - Math.floor(x);
+        const yf = y - Math.floor(y);
+        const u = this.fade(xf);
+        const v = this.fade(yf);
+
+        const aa = this.p[this.p[xi] + yi];
+        const ab = this.p[this.p[xi] + yi + 1];
+        const ba = this.p[this.p[xi + 1] + yi];
+        const bb = this.p[this.p[xi + 1] + yi + 1];
+
+        const x1 = this.lerp(u, this.grad(aa, xf, yf), this.grad(ba, xf - 1, yf));
+        const x2 = this.lerp(u, this.grad(ab, xf, yf - 1), this.grad(bb, xf - 1, yf - 1));
+        return this.lerp(v, x1, x2);
+      }
+
+      fbm(x, y, octaves = 4, persistence = 0.5, lacunarity = 2.0) {
+        let value = 0;
+        let amplitude = 1;
+        let frequency = 1;
+        let maxValue = 0;
+
+        for (let i = 0; i < octaves; i++) {
+          value += amplitude * this.noise(x * frequency, y * frequency);
+          maxValue += amplitude;
+          amplitude *= persistence;
+          frequency *= lacunarity;
+        }
+
+        return value / maxValue;
+      }
+    }
+
+    const canvas = document.getElementById("backdrop");
+    const ctx = canvas.getContext("2d");
+    let width;
+    let height;
+    const perlin = new PerlinNoise();
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+
+    // Generate organic flowing particles with Perlin noise influence
+    const particles = Array.from({ length: 85 }, (_, index) => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      baseRadius: 60 + Math.random() * 180,
+      vx: (Math.random() - 0.5) * 0.08,
+      vy: (Math.random() - 0.5) * 0.08,
+      offset: Math.random() * Math.PI * 2,
+      speed: 0.00025 + Math.random() * 0.0008,
+      hue: 185 + Math.random() * 120,
+      alpha: 0.12 + Math.random() * 0.16,
+      turbulence: Math.random() * 2.5,
+      noisePhase: Math.random() * Math.PI * 2,
+      index
+    }));
+
+    let isCalculating = false;
+
+    function paintFrame(timestamp) {
+      // Multi-layer backdrop with depth
+      ctx.globalCompositeOperation = "source-over";
+      const baseAlpha = 0.22 + perlin.fbm(timestamp * 0.0001, 0) * 0.08;
+      ctx.fillStyle = `rgba(5, 7, 15, ${baseAlpha})`;
+      ctx.fillRect(0, 0, width, height);
+
+      // Apply fractal-based vignette
+      const vignetteGradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.sqrt(width * width + height * height) * 0.7);
+      vignetteGradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+      vignetteGradient.addColorStop(1, "rgba(0, 0, 0, 0.3)");
+      ctx.fillStyle = vignetteGradient;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.globalCompositeOperation = "lighter";
+
+      // Optimize Perlin noise during heavy computation
+      const noiseDetail = isCalculating ? 2 : 3;
+
+      particles.forEach((p, idx) => {
+        // Perlin noise-driven motion (optimized during calculation)
+        const noiseX = perlin.fbm(p.x * 0.0008 + timestamp * 0.00008, p.y * 0.0008, noiseDetail);
+        const noiseY = perlin.fbm(p.x * 0.0008 + 100, p.y * 0.0008 + timestamp * 0.00008, noiseDetail);
+
+        // Update position with organic flow
+        p.x += p.vx + noiseX * p.turbulence * 0.04;
+        p.y += p.vy + noiseY * p.turbulence * 0.04;
+
+        // Wrap around edges with smooth fade
+        if (p.x < -200) p.x = width + 200;
+        if (p.x > width + 200) p.x = -200;
+        if (p.y < -200) p.y = height + 200;
+        if (p.y > height + 200) p.y = -200;
+
+        const pulse = Math.sin(timestamp * p.speed + p.offset) * 0.5 + 0.5;
+        const noiseInfluence = perlin.fbm(p.x * 0.001, p.y * 0.001 + timestamp * 0.00005, 2) * 0.6;
+        const radius = p.baseRadius * (0.15 + pulse * 0.55 + noiseInfluence * 0.3);
+
+        // Multi-color gradient with organic variation
+        const hueShift = noiseInfluence * 30;
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+        gradient.addColorStop(0, `hsla(${p.hue + hueShift}, 95%, 65%, ${0.28 + p.alpha + pulse * 0.08})`);
+        gradient.addColorStop(0.4, `hsla(${p.hue + hueShift + 25}, 88%, 55%, ${0.15 + p.alpha * 0.6})`);
+        gradient.addColorStop(1, "rgba(8, 10, 22, 0)");
+
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(paintFrame);
+    }
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    requestAnimationFrame(paintFrame);
+
+    const wizardSteps = Array.from(document.querySelectorAll(".wizard-step"));
+    const prevButton = document.querySelector('[data-action="prev"]');
+    const nextButton = document.querySelector('[data-action="next"]');
+    const stepBackdrop = document.querySelector(".step-backdrop");
+    const stepGlyph = document.querySelector(".step-glyph");
+    const stepTitle = document.querySelector(".step-title");
+    const stepStory = document.querySelector(".step-story");
+    const aliasTargets = document.querySelectorAll('[data-alias]');
+    const resultsSection = document.getElementById("resultsSection");
+    const resultGallery = document.getElementById("resultGallery");
+    const resultDetail = document.getElementById("resultDetail");
+
+    const detailTitle = document.getElementById("detailTitle");
+    const detailSubtitle = document.getElementById("detailSubtitle");
+    const detailFit = document.getElementById("detailFit");
+    const detailTasks = document.getElementById("detailTasks");
+    const detailCta = document.getElementById("detailCta");
+
+    let currentStep = 0;
+    let selectedCard = null;
+
+    const stepVisuals = [
+      {
+        title: "Step 01 · Profile",
+        story: "Share where you operate and the industries that energize you. We match real unit economics to your market.",
+        background: "radial-gradient(circle at 20% 20%, rgba(74, 141, 255, 0.48), rgba(10, 14, 28, 0.92))",
+        glyph: `
+          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="grad-profile" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4fffd3" />
+                <stop offset="50%" stop-color="#6bb5e0" />
+                <stop offset="100%" stop-color="#4a8dff" />
+              </linearGradient>
+              <filter id="blur-profile">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="0.8" />
+              </filter>
+            </defs>
+            <!-- Organic background flow -->
+            <path d="M30 60 Q40 35, 60 30 Q85 25, 95 50 Q100 75, 75 90 Q50 95, 35 80 Q25 70, 30 60 Z" fill="url(#grad-profile)" opacity="0.15" />
+            <!-- Organic outer ring -->
+            <path d="M20 60 Q28 25, 60 18 Q98 12, 105 55 Q108 85, 80 100 Q45 110, 22 85 Q15 75, 20 60 Z" fill="none" stroke="url(#grad-profile)" stroke-width="2.5" opacity="0.6" />
+            <!-- Inner flowing form -->
+            <path d="M45 55 Q50 40, 60 38 Q75 36, 80 50 Q82 65, 70 75 Q55 80, 45 70 Q42 65, 45 55 Z" fill="url(#grad-profile)" opacity="0.7" />
+            <!-- Central pulse point -->
+            <circle cx="60" cy="58" r="6" fill="#4fffd3" opacity="0.9" filter="url(#blur-profile)" />
+          </svg>
+        `
+      },
+      {
+        title: "Step 02 · Capacity",
+        story: "Time and launch capital determine which models can ramp quickly. We focus on realistic staffing and tooling costs.",
+        background: "radial-gradient(circle at 80% 20%, rgba(79, 255, 211, 0.4), rgba(10, 14, 28, 0.93))",
+        glyph: `
+          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="grad-capacity" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4fffd3" />
+                <stop offset="50%" stop-color="#ffb347" />
+                <stop offset="100%" stop-color="#ff8a65" />
+              </linearGradient>
+              <filter id="glow-capacity">
+                <feGaussianBlur stdDeviation="1.2" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <!-- Wave form representing growth -->
+            <path d="M18 65 Q30 45, 45 50 T75 45 T105 60 L105 90 Q75 95, 45 92 Q30 90, 18 88 Z" fill="url(#grad-capacity)" opacity="0.2" />
+            <!-- Organic ascending curve -->
+            <path d="M20 75 Q35 55, 50 48 Q70 40, 90 45" fill="none" stroke="url(#grad-capacity)" stroke-width="3.5" stroke-linecap="round" filter="url(#glow-capacity)" />
+            <!-- Progress dots with organic placement -->
+            <circle cx="35" cy="63" r="5" fill="#4fffd3" opacity="0.85" />
+            <circle cx="60" cy="52" r="6.5" fill="#ffb347" opacity="0.88" />
+            <circle cx="85" cy="48" r="5.5" fill="#ff8a65" opacity="0.82" />
+          </svg>
+        `
+      },
+      {
+        title: "Step 03 · Strategy",
+        story: "Your risk posture and preferred channels guide whether we emphasize retainers, automation, or outbound plays.",
+        background: "radial-gradient(circle at 30% 75%, rgba(74, 141, 255, 0.38), rgba(10, 14, 28, 0.94))",
+        glyph: `
+          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="grad-strategy" x1="0%" y1="50%" x2="100%" y2="50%">
+                <stop offset="0%" stop-color="#4a8dff" />
+                <stop offset="50%" stop-color="#4fffd3" />
+                <stop offset="100%" stop-color="#7c3aed" />
+              </linearGradient>
+              <filter id="glow-strategy">
+                <feGaussianBlur stdDeviation="1.5" />
+              </filter>
+            </defs>
+            <!-- Flowing organic path 1 -->
+            <path d="M15 65 Q35 25, 55 35 Q75 42, 100 50" fill="none" stroke="url(#grad-strategy)" stroke-width="4" stroke-linecap="round" opacity="0.7" />
+            <!-- Flowing organic path 2 -->
+            <path d="M20 75 Q45 55, 65 48 Q85 42, 105 65" fill="none" stroke="url(#grad-strategy)" stroke-width="3" stroke-linecap="round" opacity="0.5" />
+            <!-- Flowing organic path 3 -->
+            <path d="M18 85 Q40 70, 60 68 Q80 66, 105 80" fill="none" stroke="url(#grad-strategy)" stroke-width="2" stroke-linecap="round" opacity="0.4" />
+            <!-- Intersection points -->
+            <circle cx="55" cy="45" r="5.5" fill="#4fffd3" opacity="0.9" filter="url(#glow-strategy)" />
+            <circle cx="78" cy="52" r="4.5" fill="#7c3aed" opacity="0.8" />
+          </svg>
+        `
+      },
+      {
+        title: "Step 04 · Targets",
+        story: "Define the result that signals success. We supply the ramp model and KPIs to monitor from day one.",
+        background: "radial-gradient(circle at 50% 50%, rgba(255, 179, 71, 0.35), rgba(10, 14, 28, 0.95))",
+        glyph: `
+          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <radialGradient id="grad-target" cx="50%" cy="50%" r="60%">
+                <stop offset="0%" stop-color="#ffb347" />
+                <stop offset="60%" stop-color="#4fffd3" />
+                <stop offset="100%" stop-color="#4a8dff" />
+              </radialGradient>
+              <filter id="glow-target">
+                <feGaussianBlur stdDeviation="1.8" />
+              </filter>
+            </defs>
+            <!-- Organic concentric waves -->
+            <path d="M35 60 Q50 40, 65 45 Q80 50, 85 65 Q80 80, 65 85 Q50 88, 35 80 Z" fill="url(#grad-target)" opacity="0.15" />
+            <path d="M40 60 Q52 42, 60 44 Q72 46, 78 60 Q75 75, 60 80 Q48 82, 40 75 Z" fill="none" stroke="url(#grad-target)" stroke-width="2" opacity="0.5" />
+            <!-- Center pinnacle -->
+            <circle cx="60" cy="60" r="8" fill="#ffb347" opacity="0.9" filter="url(#glow-target)" />
+            <!-- Surrounding accent points -->
+            <circle cx="48" cy="48" r="3.5" fill="#4fffd3" opacity="0.7" />
+            <circle cx="75" cy="50" r="3.5" fill="#4fffd3" opacity="0.7" />
+            <circle cx="78" cy="72" r="3.5" fill="#4fffd3" opacity="0.7" />
+            <circle cx="45" cy="75" r="3.5" fill="#4fffd3" opacity="0.7" />
+          </svg>
+        `
+      }
+    ];
+
+    const businessCatalog = [
+      {
+        codename: "Healthcare Compliance Concierge",
+        icon: "📋",
+        industryTag: "professional-services",
+        riskAffinity: ["conservative", "balanced"],
+        channelAffinity: ["content", "outbound"],
+        compliancePreference: ["regulated", "standard"],
+        monthlyRevenue: 9800,
+        monthlyExpenses: 2400,
+        startupCost: 3200,
+        rampMonths: 2,
+        description: "Done-for-you OSHA and HIPAA filing for clinics, with bundled workforce training updates.",
+        highlights: [
+          "Average retainers range from $2.4K–$3.2K per location",
+          "Leverages templated policy library inside BBB automation stack",
+          "Strong demand in multi-site dentistry and urgent care chains"
+        ],
+        tasks: [
+          "Form partnerships with local medical associations",
+          "Deploy intake audit using BBB compliance questionnaire",
+          "Upsell annual training refreshers via automated email drip"
+        ],
+        starter: false
+      },
+      {
+        codename: "AI Content Studio for B2B Tech",
+        icon: "🧠",
+        industryTag: "marketing",
+        riskAffinity: ["balanced", "bold"],
+        channelAffinity: ["content", "automation"],
+        compliancePreference: ["standard", "light"],
+        monthlyRevenue: 8700,
+        monthlyExpenses: 2100,
+        startupCost: 2600,
+        rampMonths: 1,
+        description: "Publishes SEO thought leadership packages plus LinkedIn distribution for SaaS founders.",
+        highlights: [
+          "3-retainer model at $2.8K each hits $25K quarter",
+          "Includes workflow automations for briefs, drafts, and approvals",
+          "Founder can deliver alone with 20 hours/week"
+        ],
+        tasks: [
+          "Install BBB briefing templates into Notion or ClickUp",
+          "Secure 3 beta clients via founder LinkedIn outreach",
+          "Automate post scheduling through Zapier and BBB scripts"
+        ],
+        starter: false
+      },
+      {
+        codename: "Construction Bookkeeping Hub",
+        icon: "🏗️",
+        industryTag: "finance",
+        riskAffinity: ["conservative", "balanced"],
+        channelAffinity: ["outbound", "automation"],
+        compliancePreference: ["regulated", "standard"],
+        monthlyRevenue: 10200,
+        monthlyExpenses: 2700,
+        startupCost: 4100,
+        rampMonths: 3,
+        description: "Manages job costing, certified payroll, and quarterly tax packages for specialty contractors.",
+        highlights: [
+          "5-client roster at $2K per month reaches $30K each quarter",
+          "BBB automations reconcile supplier invoices nightly",
+          "High retention once onboarding is complete"
+        ],
+        tasks: [
+          "Document target trade associations in your region",
+          "Customize BBB onboarding forms for job costing",
+          "Offer quarterly compliance review as upsell"
+        ],
+        starter: false
+      },
+      {
+        codename: "Regulated Freight Dispatch",
+        icon: "🚚",
+        industryTag: "logistics",
+        riskAffinity: ["balanced", "bold"],
+        channelAffinity: ["outbound", "events"],
+        compliancePreference: ["regulated", "standard"],
+        monthlyRevenue: 9200,
+        monthlyExpenses: 2600,
+        startupCost: 3800,
+        rampMonths: 2,
+        description: "Provides lane sourcing, contract management, and safety file upkeep for regional carriers.",
+        highlights: [
+          "Subscription bundles average $2.3K per fleet",
+          "Automation tracks IFTA, insurance, and driver files",
+          "Blend of recurring retainers plus per-load bonuses"
+        ],
+        tasks: [
+          "Tailor BBB safety checklist to DOT requirements",
+          "Host virtual briefing for owner-operators",
+          "Build weekly lane reports using BBB analytics"
+        ],
+        starter: false
+      },
+      {
+        codename: "Employer of Record Advisory",
+        icon: "🌐",
+        industryTag: "professional-services",
+        riskAffinity: ["balanced", "bold"],
+        channelAffinity: ["content", "events"],
+        compliancePreference: ["regulated", "standard"],
+        monthlyRevenue: 10800,
+        monthlyExpenses: 3200,
+        startupCost: 4600,
+        rampMonths: 2,
+        description: "Guides startups through hiring in new states via EOR partners, including payroll setup and policy packs.",
+        highlights: [
+          "Charge $3.6K setup plus $1.2K monthly care plans",
+          "Plug-and-play onboarding checklists inside BBB",
+          "Cross-sell handbook creation and compliance refreshers"
+        ],
+        tasks: [
+          "Select two preferred EOR vendors to partner with",
+          "Launch webinar targeting remote-first founders",
+          "Automate onboarding sequence and milestone tracking"
+        ],
+        starter: false
+      },
+      {
+        codename: "Fractional RevOps Quick Start",
+        icon: "📈",
+        industryTag: "technology",
+        riskAffinity: ["bold"],
+        channelAffinity: ["automation", "outbound"],
+        compliancePreference: ["standard", "light"],
+        monthlyRevenue: 11500,
+        monthlyExpenses: 3100,
+        startupCost: 5200,
+        rampMonths: 1,
+        description: "Implements CRM hygiene, automations, and pipeline analytics for $2M–$10M ARR companies.",
+        highlights: [
+          "Two $4K retainers plus implementation fees reach goal",
+          "Utilizes BBB playbooks for HubSpot and Salesforce",
+          "High stickiness via revenue reporting dashboard"
+        ],
+        tasks: [
+          "Audit existing CRM and map fast wins",
+          "Stand up automation sequences with BBB templates",
+          "Create executive dashboard with weekly digest"
+        ],
+        starter: false
+      },
+      {
+        codename: "Local Clinic Marketing Bundle",
+        icon: "🏥",
+        industryTag: "healthcare",
+        riskAffinity: ["balanced"],
+        channelAffinity: ["events", "content"],
+        compliancePreference: ["regulated", "standard"],
+        monthlyRevenue: 8600,
+        monthlyExpenses: 2300,
+        startupCost: 2800,
+        rampMonths: 2,
+        description: "Handles local SEO, reputation management, and referral campaigns for dental and medspa clinics.",
+        highlights: [
+          "Bundles priced at $2.7K/month with 4-clinic cap",
+          "BBB automates review requests and lead tracking",
+          "Opportunity to upsell compliance newsletter"
+        ],
+        tasks: [
+          "Set up listings and citation clean-up workflow",
+          "Launch referral partnership program with scripts",
+          "Automate weekly performance summary per clinic"
+        ],
+        starter: false
+      },
+      {
+        codename: "Business License Starter Service",
+        icon: "🪪",
+        industryTag: "generalist",
+        riskAffinity: ["conservative", "balanced"],
+        channelAffinity: ["content", "outbound"],
+        compliancePreference: ["light", "standard"],
+        monthlyRevenue: 4800,
+        monthlyExpenses: 600,
+        startupCost: 450,
+        rampMonths: 1,
+        description: "Helps new founders secure local business licenses, EIN, and basic filings using BBB automation.",
+        highlights: [
+          "Charges $375 starter package plus $99 care plan",
+          "Requires only licensing fees and a BBB subscription",
+          "Excellent foot-in-the-door for upselling bookkeeping"
+        ],
+        tasks: [
+          "Publish a city-by-city startup checklist landing page",
+          "Partner with coworking spaces for weekly office hours",
+          "Automate status notifications through BBB workflows"
+        ],
+        starter: true
+      }
+    ];
+
+    function showStep(index) {
+      currentStep = index;
+      wizardSteps.forEach((step, stepIndex) => {
+        step.classList.toggle("active", stepIndex === currentStep);
+      });
+
+      prevButton.disabled = currentStep === 0;
+      if (currentStep === wizardSteps.length - 1) {
+        nextButton.textContent = "Generate Blueprints";
+      } else {
+        nextButton.textContent = "Next";
+      }
+
+      const visual = stepVisuals[currentStep];
+      stepBackdrop.style.background = visual.background;
+      stepGlyph.innerHTML = visual.glyph;
+      stepTitle.textContent = visual.title;
+      stepStory.textContent = visual.story;
+    }
+
+    function validateStep(index) {
+      const fields = wizardSteps[index].querySelectorAll("input, select, textarea");
+      for (const field of fields) {
+        if (field.hasAttribute("required") && !field.value) {
+          field.reportValidity();
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function updateRangeDisplays() {
+      const hoursValue = document.getElementById("hours").value;
+      const budgetValue = document.getElementById("budget").value;
+      document.querySelector('[data-range-display="hours"]').textContent = `${hoursValue}h`;
+      document.querySelector('[data-range-display="budget"]').textContent = `$${Number(budgetValue).toLocaleString()}`;
+    }
+
+    function calculateBlueprint(profile) {
+      const results = businessCatalog.map((idea) => {
+        const industryFit = idea.industryTag === profile.industry || idea.industryTag === "generalist"
+          ? 1.22
+          : profile.industry === "generalist" ? 1.08 : 0.9;
+        const riskFit = idea.riskAffinity.includes(profile.risk) ? 1.18 : 0.9;
+        const channelFit = idea.channelAffinity.includes(profile.channel) ? 1.16 : 0.92;
+        const complianceFit = idea.compliancePreference.includes(profile.compliance) ? 1.12 : 0.9;
+        const budgetFit = profile.budget >= idea.startupCost
+          ? 1.12
+          : Math.max(0.55, profile.budget / idea.startupCost);
+        const hoursFit = profile.hours >= 35
+          ? 1.08
+          : Math.max(0.6, profile.hours / 35);
+        const starterBoost = idea.starter ? 1.35 : 1;
+
+        const baseProfit = (idea.monthlyRevenue - idea.monthlyExpenses) * 3 - idea.startupCost;
+        const synergy = baseProfit * industryFit * riskFit * channelFit * complianceFit * budgetFit * hoursFit * starterBoost;
+        const breakeven = Math.max(1, Math.ceil(idea.startupCost / Math.max(300, idea.monthlyRevenue - idea.monthlyExpenses)));
+
+        return {
+          idea,
+          synergy,
+          quarterProfit: Math.round(baseProfit),
+          breakEvenMonths: breakeven,
+          fitNotes: [
+            `Industry fit score: ${(industryFit * 100).toFixed(0)}%`,
+            `Risk alignment: ${(riskFit * 100).toFixed(0)}%`,
+            `Budget coverage: ${(budgetFit * 100).toFixed(0)}%`
+          ]
+        };
+      }).sort((a, b) => b.synergy - a.synergy);
+
+      const top = results.slice(0, 3);
+      const hasStarter = top.some((entry) => entry.idea.starter);
+      if (!hasStarter) {
+        const starterEntry = results.find((entry) => entry.idea.starter);
+        if (starterEntry) {
+          top.pop();
+          top.push(starterEntry);
+        }
+      }
+
+      return top;
+    }
+
+    function renderDetail(entry, profile) {
+      // Remove hidden attribute to show detail section
+      resultDetail.removeAttribute("hidden");
+
+      detailTitle.textContent = entry.idea.codename;
+      detailSubtitle.textContent = entry.idea.description;
+
+      detailFit.innerHTML = "";
+      entry.idea.highlights.forEach((highlight) => {
+        const li = document.createElement("li");
+        li.textContent = highlight;
+        detailFit.appendChild(li);
+      });
+
+      detailTasks.innerHTML = "";
+      entry.idea.tasks.forEach((task) => {
+        const li = document.createElement("li");
+        li.textContent = task;
+        detailTasks.appendChild(li);
+      });
+
+      detailCta.innerHTML = `
+        <span><strong>Target metric:</strong> ${profile.metricLabel}</span>
+        <span><strong>Quarterly objective:</strong> ${profile.objectiveLabel}</span>
+        <span><strong>Break-even:</strong> month ${entry.breakEvenMonths}</span>
+      `;
+
+      // Scroll detail into view when card is clicked
+      requestAnimationFrame(() => {
+        resultDetail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    }
+
+    function renderResults(profile) {
+      // Optimize rendering during calculation
+      isCalculating = true;
+
+      const recommendations = calculateBlueprint(profile);
+      resultGallery.innerHTML = "";
+
+      // Resume full quality after calculation
+      isCalculating = false;
+
+      recommendations.forEach((entry, index) => {
+        const card = document.createElement("article");
+        card.className = "result-card";
+        card.setAttribute("data-rank", `rank ${index + 1}`);
+        card.innerHTML = `
+          <div class="result-icon">${entry.idea.icon}</div>
+          <h3 class="result-title">${entry.idea.codename}</h3>
+          <p class="result-tagline">${entry.idea.description}</p>
+          <div class="result-stats">
+            <span>Projected quarter profit <strong>$${entry.quarterProfit.toLocaleString()}</strong></span>
+            <span>Breakeven month <strong>${entry.breakEvenMonths}</strong></span>
+          </div>
+          <div class="result-meta">
+            <span class="meta-pill">${entry.idea.industryTag.replace(/-/g, " ")}</span>
+            <span class="meta-pill">$${entry.idea.startupCost.toLocaleString()} startup</span>
+            <span class="meta-pill">${entry.idea.rampMonths}-month ramp</span>
+            ${entry.idea.starter ? '<span class="meta-pill">starter plan</span>' : ""}
+          </div>
+        `;
+
+        card.addEventListener("click", () => {
+          if (selectedCard) {
+            selectedCard.classList.remove("selected");
+          }
+          card.classList.add("selected");
+          selectedCard = card;
+          renderDetail(entry, profile);
+        });
+
+        resultGallery.appendChild(card);
+
+        if (index === 0) {
+          card.classList.add("selected");
+          selectedCard = card;
+          renderDetail(entry, profile);
+        }
+      });
+
+      resultsSection.hidden = false;
+      requestAnimationFrame(() => {
+        resultsSection.classList.add("visible");
+      });
+      resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function collectProfile() {
+      return {
+        alias: document.getElementById("alias").value.trim(),
+        location: document.getElementById("location").value.trim(),
+        industry: document.getElementById("industry").value,
+        background: document.getElementById("background").value.trim(),
+        hours: Number(document.getElementById("hours").value),
+        budget: Number(document.getElementById("budget").value),
+        assets: document.getElementById("assets").value.trim(),
+        risk: document.getElementById("risk").value,
+        channel: document.getElementById("channel").value,
+        compliance: document.getElementById("compliance").value,
+        objective: document.getElementById("objective").value,
+        metric: document.getElementById("metric").value,
+        mantra: document.getElementById("mantra").value.trim(),
+        objectiveLabel: document.querySelector("#objective option:checked").textContent,
+        metricLabel: document.querySelector("#metric option:checked").textContent
+      };
+    }
+
+    prevButton.addEventListener("click", () => {
+      if (currentStep > 0) {
+        showStep(currentStep - 1);
+      }
+    });
+
+    nextButton.addEventListener("click", () => {
+      if (!validateStep(currentStep)) {
+        return;
+      }
+
+      if (currentStep === wizardSteps.length - 1) {
+        const profile = collectProfile();
+        aliasTargets.forEach((target) => {
+          target.textContent = profile.alias || "founder";
+        });
+        renderResults(profile);
+      } else {
+        showStep(currentStep + 1);
+      }
+    });
+
+    document.getElementById("hours").addEventListener("input", updateRangeDisplays);
+    document.getElementById("budget").addEventListener("input", updateRangeDisplays);
+    updateRangeDisplays();
+    showStep(0);
+  </script>
+</body>
+</html>

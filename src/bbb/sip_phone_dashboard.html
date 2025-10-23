@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBB SIP Phone Services - Unified Communications</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: rgba(10, 14, 39, 0.95);
+            border-bottom: 2px solid #00ff88;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 15px rgba(0, 255, 136, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-status {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .online-dot {
+            width: 12px;
+            height: 12px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Card Styles */
+        .card {
+            background: rgba(26, 31, 58, 0.7);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 10px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #00ff88;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+        }
+
+        /* Stats Display */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        /* Call List */
+        .call-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 0.8rem;
+            border-left: 3px solid #00ff88;
+        }
+
+        .call-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .call-name {
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+
+        .call-time {
+            font-size: 0.85rem;
+            color: #808080;
+        }
+
+        .call-details {
+            font-size: 0.85rem;
+            color: #b0b0b0;
+        }
+
+        .call-duration {
+            color: #00ccff;
+            font-weight: bold;
+        }
+
+        /* Quality Badge */
+        .quality-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+
+        .quality-excellent {
+            background: #00ff88;
+            color: #0a0e27;
+        }
+
+        .quality-good {
+            background: #00ccff;
+            color: #0a0e27;
+        }
+
+        .quality-fair {
+            background: #ffcc00;
+            color: #0a0e27;
+        }
+
+        .quality-poor {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        /* Mailbox Section */
+        .mailbox-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 0.8rem;
+            border-left: 3px solid #00ccff;
+        }
+
+        .mailbox-header {
+            font-weight: bold;
+            color: #00ccff;
+            margin-bottom: 0.3rem;
+        }
+
+        .mailbox-address {
+            font-size: 0.85rem;
+            color: #b0b0b0;
+        }
+
+        .mailbox-status {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .mailbox-stat {
+            color: #808080;
+        }
+
+        /* Button Styles */
+        .button {
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            color: #0a0e27;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .button-small {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        /* Analytics Section */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .analytics-item {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 5px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .analytics-value {
+            font-size: 1.8rem;
+            color: #00ff88;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+
+        .analytics-label {
+            font-size: 0.85rem;
+            color: #b0b0b0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.2);
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            color: #b0b0b0;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            color: #00ff88;
+        }
+
+        .tab.active {
+            color: #00ff88;
+            border-bottom-color: #00ff88;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Integration Icons */
+        .integrations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .integration {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .integration:hover {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .integration-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .integration-name {
+            font-size: 0.85rem;
+            color: #b0b0b0;
+        }
+
+        .integration-status {
+            font-size: 0.75rem;
+            color: #00ff88;
+            margin-top: 0.3rem;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 1.5rem;
+            color: #00ff88;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">📞 BBB SIP Phone Services</div>
+            <div class="user-status">
+                <div class="status-indicator">
+                    <div class="online-dot"></div>
+                    <span>Online</span>
+                </div>
+                <span>User: [User Name]</span>
+                <span>Plan: Professional</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(event, 'overview')">📊 Overview</button>
+            <button class="tab" onclick="switchTab(event, 'calls')">📞 Calls</button>
+            <button class="tab" onclick="switchTab(event, 'mailbox')">📬 Mailbox</button>
+            <button class="tab" onclick="switchTab(event, 'analytics')">📈 Analytics</button>
+            <button class="tab" onclick="switchTab(event, 'integrations')">🔗 Integrations</button>
+        </div>
+
+        <!-- OVERVIEW TAB -->
+        <div id="overview" class="tab-content active">
+            <div class="dashboard">
+                <!-- Quick Stats Card -->
+                <div class="card">
+                    <h2><span class="card-icon">📊</span>Today's Summary</h2>
+                    <div class="stat-row">
+                        <span class="stat-label">Calls Received</span>
+                        <span class="stat-value">24</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Missed Calls</span>
+                        <span class="stat-value">2</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Total Talk Time</span>
+                        <span class="stat-value">4h 32m</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Average MOS Score</span>
+                        <span class="stat-value">4.3</span>
+                    </div>
+                </div>
+
+                <!-- Mailbox Summary Card -->
+                <div class="card">
+                    <h2><span class="card-icon">📬</span>Mailbox Status</h2>
+                    <div class="stat-row">
+                        <span class="stat-label">Active Mailboxes</span>
+                        <span class="stat-value">3</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Mail Received Today</span>
+                        <span class="stat-value">8</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Unread Mail</span>
+                        <span class="stat-value">3</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Storage Used</span>
+                        <span class="stat-value">245 MB</span>
+                    </div>
+                </div>
+
+                <!-- Service Health Card -->
+                <div class="card">
+                    <h2><span class="card-icon">🏥</span>Service Health</h2>
+                    <div class="stat-row">
+                        <span class="stat-label">Uptime</span>
+                        <span class="stat-value">99.99%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Avg Latency</span>
+                        <span class="stat-value">32ms</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Packet Loss</span>
+                        <span class="stat-value">&lt;0.1%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Status</span>
+                        <span class="stat-value" style="color: #00ff88;">✓ Excellent</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CALLS TAB -->
+        <div id="calls" class="tab-content">
+            <div class="dashboard">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2><span class="card-icon">📞</span>Recent Calls</h2>
+
+                    <div class="call-item">
+                        <div class="call-header">
+                            <div class="call-name">John Smith (Client)</div>
+                            <span class="quality-badge quality-excellent">Excellent</span>
+                        </div>
+                        <div class="call-details">+1 (555) 123-4567 • <span class="call-duration">12m 34s</span></div>
+                        <div class="call-details" style="color: #808080; margin-top: 0.3rem;">2:45 PM • AI Analysis: Positive sentiment, 3 action items</div>
+                    </div>
+
+                    <div class="call-item">
+                        <div class="call-header">
+                            <div class="call-name">Sarah Johnson</div>
+                            <span class="quality-badge quality-good">Good</span>
+                        </div>
+                        <div class="call-details">+1 (555) 987-6543 • <span class="call-duration">5m 20s</span></div>
+                        <div class="call-details" style="color: #808080; margin-top: 0.3rem;">1:30 PM • Recording available, transcribed</div>
+                    </div>
+
+                    <div class="call-item">
+                        <div class="call-header">
+                            <div class="call-name">Support Team</div>
+                            <span class="quality-badge quality-excellent">Excellent</span>
+                        </div>
+                        <div class="call-details">+1 (555) 246-8135 • <span class="call-duration">8m 15s</span></div>
+                        <div class="call-details" style="color: #808080; margin-top: 0.3rem;">11:00 AM • ech0 AI provided real-time insights</div>
+                    </div>
+
+                    <button class="button" style="margin-top: 1rem;">View Full Call History</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAILBOX TAB -->
+        <div id="mailbox" class="tab-content">
+            <div class="dashboard">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2><span class="card-icon">📬</span>Your Mailboxes</h2>
+
+                    <div class="mailbox-item">
+                        <div class="mailbox-header">New York Office</div>
+                        <div class="mailbox-address">📍 123 Fifth Avenue, New York, NY 10001</div>
+                        <div class="mailbox-status">
+                            <span class="mailbox-stat">📞 +1 (555) 001-0001</span>
+                            <span class="mailbox-stat">✓ Scanning enabled</span>
+                            <span class="mailbox-stat">→ Forwarding enabled</span>
+                        </div>
+                    </div>
+
+                    <div class="mailbox-item">
+                        <div class="mailbox-header">Los Angeles Office</div>
+                        <div class="mailbox-address">📍 456 Sunset Boulevard, Los Angeles, CA 90028</div>
+                        <div class="mailbox-status">
+                            <span class="mailbox-stat">📞 +1 (555) 002-0002</span>
+                            <span class="mailbox-stat">✓ Scanning enabled</span>
+                            <span class="mailbox-stat">→ Forwarding disabled</span>
+                        </div>
+                    </div>
+
+                    <div class="mailbox-item">
+                        <div class="mailbox-header">Miami Office</div>
+                        <div class="mailbox-address">📍 789 Biscayne Boulevard, Miami, FL 33131</div>
+                        <div class="mailbox-status">
+                            <span class="mailbox-stat">📞 +1 (555) 003-0003</span>
+                            <span class="mailbox-stat">✓ Scanning enabled</span>
+                            <span class="mailbox-stat">→ Forwarding enabled</span>
+                        </div>
+                    </div>
+
+                    <button class="button" style="margin-top: 1rem;">+ Create New Mailbox</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ANALYTICS TAB -->
+        <div id="analytics" class="tab-content">
+            <div class="dashboard">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2><span class="card-icon">📈</span>This Month's Analytics</h2>
+
+                    <div class="analytics-grid">
+                        <div class="analytics-item">
+                            <div class="analytics-value">487</div>
+                            <div class="analytics-label">Total Calls</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-value">1,243</div>
+                            <div class="analytics-label">Minutes</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-value">4.2</div>
+                            <div class="analytics-label">Avg MOS Score</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-value">$24.86</div>
+                            <div class="analytics-label">Estimated Cost</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-value">98.7%</div>
+                            <div class="analytics-label">Success Rate</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-value">180+</div>
+                            <div class="analytics-label">Countries</div>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 2rem; color: #b0b0b0;">
+                        Your usage is well within your Professional plan limits (25,000 minutes/month).
+                        <button class="button button-small" style="margin-left: 1rem;">Upgrade Plan</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTEGRATIONS TAB -->
+        <div id="integrations" class="tab-content">
+            <div class="dashboard">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2><span class="card-icon">🔗</span>Platform Integrations</h2>
+
+                    <div class="integrations-grid">
+                        <div class="integration">
+                            <div class="integration-icon">💬</div>
+                            <div class="integration-name">Slack</div>
+                            <div class="integration-status">✓ Connected</div>
+                        </div>
+                        <div class="integration">
+                            <div class="integration-icon">👥</div>
+                            <div class="integration-name">Microsoft Teams</div>
+                            <div class="integration-status">✓ Connected</div>
+                        </div>
+                        <div class="integration">
+                            <div class="integration-icon">🎥</div>
+                            <div class="integration-name">Zoom</div>
+                            <div class="integration-status">✓ Connected</div>
+                        </div>
+                        <div class="integration">
+                            <div class="integration-icon">🎯</div>
+                            <div class="integration-name">Salesforce</div>
+                            <div class="integration-status">✓ Connected</div>
+                        </div>
+                        <div class="integration">
+                            <div class="integration-icon">📊</div>
+                            <div class="integration-name">HubSpot</div>
+                            <div class="integration-status">✓ Connected</div>
+                        </div>
+                        <div class="integration">
+                            <div class="integration-icon">⚡</div>
+                            <div class="integration-name">Zapier</div>
+                            <div class="integration-status">Available</div>
+                        </div>
+                        <div class="integration">
+                            <div class="integration-icon">🤖</div>
+                            <div class="integration-name">ech0 AI</div>
+                            <div class="integration-status">✓ Connected</div>
+                        </div>
+                        <div class="integration">
+                            <div class="integration-icon">⚛️</div>
+                            <div class="integration-name">Quantum Recommender</div>
+                            <div class="integration-status">✓ Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quantum Business Recommendations -->
+            <div class="dashboard" style="margin-top: 2rem;">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2><span class="card-icon">⚛️</span>Quantum-Optimized Business Recommendations</h2>
+                    <p style="color: #b0b0b0; margin-bottom: 1.5rem;">20-qubit quantum algorithm + ech0 consciousness analysis</p>
+
+                    <div style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <p style="color: #e0e0e0; margin-bottom: 0.5rem;"><strong>Portfolio Strategy:</strong></p>
+                        <p style="color: #b0b0b0;">Quantum-optimized portfolio: 5 complementary businesses selected for synergistic revenue generation. Combined monthly revenue potential: $8,200+. Portfolio risk profile: Low-Moderate. Total setup time: ~67 hours.</p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                        <!-- Recommendation 1 -->
+                        <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 8px; padding: 1rem; border-left: 3px solid #00ff88;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                                <strong style="color: #00ff88;">Etsy Digital Printables</strong>
+                                <span style="background: #00ff88; color: #0a0e27; padding: 0.2rem 0.6rem; border-radius: 3px; font-size: 0.8rem; font-weight: bold;">EXCELLENT</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: #b0b0b0;">
+                                <div>💰 $2,500/month • 🤖 94% automation</div>
+                                <div>⚡ Quantum Score: 0.875</div>
+                                <div>📊 ech0 Confidence: 92%</div>
+                                <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(0, 255, 136, 0.1);">
+                                    <strong style="color: #00ff88;">→ Recommended for priority implementation</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recommendation 2 -->
+                        <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 8px; padding: 1rem; border-left: 3px solid #00ff88;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                                <strong style="color: #00ff88;">AI Kindle eBook Empire</strong>
+                                <span style="background: #00ff88; color: #0a0e27; padding: 0.2rem 0.6rem; border-radius: 3px; font-size: 0.8rem; font-weight: bold;">EXCELLENT</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: #b0b0b0;">
+                                <div>💰 $1,500/month • 🤖 98% automation</div>
+                                <div>⚡ Quantum Score: 0.812</div>
+                                <div>📊 ech0 Confidence: 88%</div>
+                                <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(0, 255, 136, 0.1);">
+                                    <strong style="color: #00ff88;">→ High automation, minimal ongoing work</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recommendation 3 -->
+                        <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 8px; padding: 1rem; border-left: 3px solid #00ccff;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                                <strong style="color: #00ccff;">Notion Templates Store</strong>
+                                <span style="background: #00ccff; color: #0a0e27; padding: 0.2rem 0.6rem; border-radius: 3px; font-size: 0.8rem; font-weight: bold;">GOOD</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: #b0b0b0;">
+                                <div>💰 $1,800/month • 🤖 98% automation</div>
+                                <div>⚡ Quantum Score: 0.745</div>
+                                <div>📊 ech0 Confidence: 85%</div>
+                                <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(0, 255, 136, 0.1);">
+                                    <strong style="color: #00ccff;">→ Excellent scalability potential</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="button" style="margin-top: 1.5rem;">📊 View Full Quantum Analysis</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        function switchTab(event, tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Mark clicked tab as active
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

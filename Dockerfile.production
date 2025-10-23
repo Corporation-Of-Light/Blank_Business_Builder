@@ -1,0 +1,85 @@
+# Better Business Builder - Production Dockerfile
+# Copyright (c) 2025 Joshua Hendricks Cole (DBA: Corporation of Light). All Rights Reserved.
+
+FROM python:3.13-slim as builder
+
+WORKDIR /build
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY pyproject.toml .
+
+# Build wheels
+RUN pip install --upgrade pip setuptools wheel && \
+    pip wheel --no-cache-dir --wheel-dir /build/wheels .
+
+# ============================================================================
+# Final Production Image
+# ============================================================================
+FROM python:3.13-slim
+
+LABEL maintainer="Joshua Cole <joshua@corporationoflight.com>"
+LABEL version="1.0.0"
+LABEL description="Better Business Builder - Production Image"
+
+WORKDIR /app
+
+# Install system dependencies (runtime only)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN useradd -m -u 1000 bbb_user
+
+# Copy wheels from builder
+COPY --from=builder /build/wheels /wheels
+
+# Install Python dependencies
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir --no-index --find-links=/wheels .
+
+# Copy application code
+COPY src/bbb /app/bbb
+COPY scripts /app/scripts
+COPY . /app
+
+# Set permissions
+RUN chown -R bbb_user:bbb_user /app && \
+    chmod +x /app/scripts/*.sh
+
+# Create directories
+RUN mkdir -p /var/log/bbb /app/uploads && \
+    chown -R bbb_user:bbb_user /var/log/bbb /app/uploads
+
+# Switch to non-root user
+USER bbb_user
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PATH="/home/bbb_user/.local/bin:${PATH}"
+
+# Expose ports
+EXPOSE 8000
+
+# Run Gunicorn + Uvicorn
+CMD ["gunicorn", \
+     "--bind", "0.0.0.0:8000", \
+     "--workers", "4", \
+     "--worker-class", "uvicorn.workers.UvicornWorker", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "--log-level", "info", \
+     "--timeout", "60", \
+     "bbb.main:app"]
