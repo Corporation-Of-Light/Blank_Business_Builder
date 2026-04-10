@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import webbrowser
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
 from .onboarding import OnboardingAssistant
+from common_utils import launch_gui as launch_gui_util
 
 
 def serialize(obj: Any) -> Any:
@@ -25,23 +25,10 @@ def serialize(obj: Any) -> Any:
 
 
 def launch_gui() -> None:
-    """Launch the Business Builder GUI in default browser."""
+    """Launch the startup walkthrough in default browser."""
     gui_dir = Path(__file__).parent
-    candidates = [
-        ("dark-surreal-wizard.html", "dark surreal wizard"),
-        ("business_builder_gui.html", "classic interface"),
-    ]
+    launch_gui_util(gui_dir)
 
-    for filename, label in candidates:
-        gui_path = gui_dir / filename
-        if gui_path.exists():
-            webbrowser.open(f"file://{gui_path}")
-            print(f"[info] Business Builder {label} launched: {gui_path}")
-            print("[info] The GUI is running in your browser.")
-            return
-
-    checked = ", ".join(name for name, _ in candidates)
-    print(f"[error] GUI file not found. Checked: {checked}")
 
 
 def main() -> None:
