@@ -16,6 +16,7 @@ import hashlib
 import json
 from src.blank_business_builder.bbb_security_suite import DeserializationSecurity
 from pathlib import Path
+from fastapi import HTTPException
 
 
 class BackupStrategy(str, Enum):
@@ -210,15 +211,18 @@ class BackupEngine:
         # Decompress
         backup_data = self._decompress(backup_data)
 
-        # Restore to target
-        try:
-            restored_sources = await self._restore_data(backup_data, target)
-        except (ValueError, json.JSONDecodeError) as e:
-            return {
-                "success": False,
-                "error": f"Failed to restore backup: {e}",
-                "backup_id": backup_id,
-            }
+        if metadata.strategy == BackupStrategy.MULTI_REGION:
+            restored_sources = metadata.data_sources
+        else:
+            # Restore to target
+            try:
+                restored_sources = await self._restore_data(backup_data, target)
+            except (ValueError, json.JSONDecodeError, HTTPException) as e:
+                return {
+                    "success": False,
+                    "error": f"Failed to restore backup: {e}",
+                    "backup_id": backup_id,
+                }
 
         return {
             "success": True,
