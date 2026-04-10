@@ -310,7 +310,7 @@ class BackupEngine:
             # No local file is read. We can return the location string as bytes
             # to simulate having some data for the checksum verification,
             # though in a real scenario you might fetch from one of the remotes.
-            return b'{}'
+            return b""
 
         # In production, retrieve from S3/Azure/GCS
         # For local strategy, the file is already read above
