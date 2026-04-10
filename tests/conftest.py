@@ -38,11 +38,19 @@ def override_get_db():
         db.close()
 
 
+import logging
+
 # Override the app's database dependency
 app.dependency_overrides[get_db] = override_get_db
 
+logging.warning(f"App routes in conftest: {[route.path for route in app.routes]}")
 # Create test client
-client = TestClient(app)
+@pytest.fixture
+def client():
+    """Provide a test client for making HTTP requests."""
+    with TestClient(app) as c:
+        yield c
+
 
 
 @pytest.fixture(scope="session", autouse=True)
