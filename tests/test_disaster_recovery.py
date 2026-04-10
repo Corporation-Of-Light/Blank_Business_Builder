@@ -9,8 +9,7 @@ import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 
-# Import centralized test fixtures from conftest.py
-from .conftest import client
+# conftest.py provides the test DB fixtures automatically
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))

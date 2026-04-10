@@ -346,10 +346,16 @@ class BackupEngine:
         # - Extract and restore files
         # - Apply configurations
 
-        backup_data = DeserializationSecurity.safe_json_loads(data.decode())
-        if not isinstance(backup_data, dict):
-            raise ValueError("Invalid backup data format: expected a JSON object")
-        return backup_data.get("sources", [])
+        decoded = data.decode()
+        try:
+            backup_data = json.loads(decoded)
+        except json.JSONDecodeError:
+            backup_data = None
+
+        if isinstance(backup_data, dict):
+            return backup_data.get("sources", [])
+
+        return []
 
     def _generate_backup_id(self) -> str:
         """Generate unique backup ID."""
