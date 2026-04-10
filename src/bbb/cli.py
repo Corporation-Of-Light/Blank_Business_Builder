@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import webbrowser
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode
 
 from .onboarding import OnboardingAssistant
-from ..common_utils import launch_gui as launch_gui_util
+from common_utils import launch_gui as launch_gui_util
 
 
 def serialize(obj: Any) -> Any:
