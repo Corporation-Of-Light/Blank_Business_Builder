@@ -10,6 +10,7 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 import uvicorn
 import os
+import bleach
 
 from .database import get_db, User, Business, BusinessPlan, MarketingCampaign
 from .auth import (
@@ -249,8 +250,8 @@ async def create_business(
 
     new_business = Business(
         user_id=current_user.id,
-        business_name=business_data.business_name,
-        business_concept=business_data.business_name,
+        business_name=bleach.clean(business_data.business_name, tags=[], strip=True),
+        business_concept=bleach.clean(business_data.business_name, tags=[], strip=True),
         industry=business_data.industry,
         description=business_data.description,
         website_url=business_data.website_url,

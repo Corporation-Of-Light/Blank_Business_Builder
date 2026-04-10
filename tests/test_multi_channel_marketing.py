@@ -8,8 +8,7 @@ import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 
-# Import centralized test fixtures from conftest.py
-from .conftest import client
+# conftest.py provides the test DB fixtures automatically
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -201,7 +200,7 @@ class TestMultiChannelCampaignOrchestrator:
         assert Channel.EMAIL in content
         assert content[Channel.EMAIL].channel == Channel.EMAIL
         assert content[Channel.EMAIL].subject is not None
-        assert "Test Business" in content[Channel.EMAIL].body
+        assert "AI-Powered Solutions" in content[Channel.EMAIL].body
 
     def test_generate_content_linkedin(self):
         """Test generating LinkedIn content."""

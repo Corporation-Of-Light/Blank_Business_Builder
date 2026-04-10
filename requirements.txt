@@ -16,6 +16,7 @@ redis==5.0.1
 # Authentication
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt<4.1
 python-dotenv==1.0.0
 
 # Payment Processing
@@ -46,9 +47,9 @@ httpx==0.26.0
 
 # Security
 cryptography==42.0.0
-
+bleach==6.0.0
 # Utilities
-pydantic==2.5.3
+pydantic[email]==2.5.3
 pydantic-settings==2.1.0
 
 numpy==1.26.3
