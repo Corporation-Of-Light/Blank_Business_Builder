@@ -7,18 +7,20 @@ Priority Score: 3.21%
 Impact: 0.72 | User Value: 0.68 | Revenue Potential: 0.65
 """
 
-from typing import List, Dict, Optional, Callable
+from typing import List, Dict, Optional
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 import asyncio
 import hashlib
 import json
+from src.bbb.bbb_security_suite import DeserializationSecurity
 from pathlib import Path
 
 
 class BackupStrategy(str, Enum):
     """Backup storage strategies."""
+
     LOCAL = "local"
     S3 = "s3"
     AZURE_BLOB = "azure_blob"
@@ -28,6 +30,7 @@ class BackupStrategy(str, Enum):
 
 class BackupType(str, Enum):
     """Types of backups."""
+
     FULL = "full"
     INCREMENTAL = "incremental"
     DIFFERENTIAL = "differential"
@@ -36,6 +39,7 @@ class BackupType(str, Enum):
 
 class RecoveryStatus(str, Enum):
     """Recovery operation status."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -46,6 +50,7 @@ class RecoveryStatus(str, Enum):
 @dataclass
 class BackupMetadata:
     """Metadata for a backup."""
+
     backup_id: str
     backup_type: BackupType
     strategy: BackupStrategy
@@ -62,6 +67,7 @@ class BackupMetadata:
 @dataclass
 class HealthCheck:
     """System health check result."""
+
     component: str
     status: str  # healthy, degraded, unhealthy
     latency_ms: float
@@ -73,6 +79,7 @@ class HealthCheck:
 @dataclass
 class FailoverEvent:
     """Failover event record."""
+
     event_id: str
     trigger: str  # health_check, manual, auto
     from_instance: str
@@ -97,7 +104,7 @@ class BackupEngine:
         backup_type: BackupType = BackupType.FULL,
         strategy: BackupStrategy = BackupStrategy.LOCAL,
         retention_days: int = 30,
-        encrypt: bool = True
+        encrypt: bool = True,
     ) -> BackupMetadata:
         """
         Create a backup of specified data sources.
@@ -120,7 +127,9 @@ class BackupEngine:
 
         # Compress
         compressed_data = self._compress(backup_data)
-        compression_ratio = len(backup_data) / len(compressed_data) if compressed_data else 1.0
+        compression_ratio = (
+            len(backup_data) / len(compressed_data) if compressed_data else 1.0
+        )
 
         # Encrypt if requested
         if encrypt:
@@ -145,17 +154,14 @@ class BackupEngine:
             retention_days=retention_days,
             encryption_enabled=encrypt,
             compression_ratio=compression_ratio,
-            location=location
+            location=location,
         )
 
         self.backup_history.append(metadata)
         return metadata
 
     async def restore_backup(
-        self,
-        backup_id: str,
-        target: Optional[str] = None,
-        verify: bool = True
+        self, backup_id: str, target: Optional[str] = None, verify: bool = True
     ) -> Dict:
         """
         Restore from a backup.
@@ -169,12 +175,14 @@ class BackupEngine:
             Restore result dictionary
         """
         # Find backup metadata
-        metadata = next((b for b in self.backup_history if b.backup_id == backup_id), None)
+        metadata = next(
+            (b for b in self.backup_history if b.backup_id == backup_id), None
+        )
         if not metadata:
             return {
                 "success": False,
                 "error": "Backup not found",
-                "backup_id": backup_id
+                "backup_id": backup_id,
             }
 
         # Verify if requested
@@ -184,7 +192,7 @@ class BackupEngine:
                 return {
                     "success": False,
                     "error": f"Backup verification failed: {verification['error']}",
-                    "backup_id": backup_id
+                    "backup_id": backup_id,
                 }
 
         # Retrieve backup data
@@ -205,7 +213,7 @@ class BackupEngine:
             "backup_id": backup_id,
             "restored_sources": restored_sources,
             "timestamp": datetime.utcnow().isoformat(),
-            "size_bytes": metadata.size_bytes
+            "size_bytes": metadata.size_bytes,
         }
 
     async def _gather_data(self, sources: List[str], backup_type: BackupType) -> bytes:
@@ -223,8 +231,8 @@ class BackupEngine:
             "data": {
                 "database": "simulated_db_dump",
                 "files": "simulated_file_archive",
-                "configs": "simulated_config_export"
-            }
+                "configs": "simulated_config_export",
+            },
         }
         return json.dumps(data).encode()
 
@@ -248,7 +256,9 @@ class BackupEngine:
         """Decrypt backup data."""
         return data
 
-    async def _store_backup(self, backup_id: str, data: bytes, strategy: BackupStrategy) -> str:
+    async def _store_backup(
+        self, backup_id: str, data: bytes, strategy: BackupStrategy
+    ) -> str:
         """Store backup using specified strategy."""
         if strategy == BackupStrategy.LOCAL:
             backup_file = self.base_path / f"{backup_id}.backup"
@@ -271,7 +281,7 @@ class BackupEngine:
             # Store in multiple locations
             locations = [
                 await self._store_backup(backup_id, data, BackupStrategy.S3),
-                await self._store_backup(backup_id, data, BackupStrategy.GCS)
+                await self._store_backup(backup_id, data, BackupStrategy.GCS),
             ]
             return f"multi:{','.join(locations)}"
 
@@ -297,7 +307,7 @@ class BackupEngine:
             else:
                 return {
                     "valid": False,
-                    "error": f"Checksum mismatch: expected {metadata.checksum}, got {checksum}"
+                    "error": f"Checksum mismatch: expected {metadata.checksum}, got {checksum}",
                 }
         except Exception as e:
             return {"valid": False, "error": str(e)}
@@ -309,7 +319,7 @@ class BackupEngine:
         # - Extract and restore files
         # - Apply configurations
 
-        backup_data = json.loads(data.decode())
+        backup_data = DeserializationSecurity.safe_json_loads(data.decode())
         return backup_data.get("sources", [])
 
     def _generate_backup_id(self) -> str:
@@ -350,14 +360,14 @@ class FailoverOrchestrator:
         instance_id: str,
         endpoint: str,
         priority: int = 1,
-        is_active: bool = False
+        is_active: bool = False,
     ):
         """Register an instance for failover."""
         self.instances[instance_id] = {
             "endpoint": endpoint,
             "priority": priority,
             "status": "healthy",
-            "last_health_check": None
+            "last_health_check": None,
         }
 
         if is_active:
@@ -381,7 +391,7 @@ class FailoverOrchestrator:
                 latency_ms=0.0,
                 error_message="Instance not found",
                 timestamp=datetime.utcnow(),
-                auto_failover=False
+                auto_failover=False,
             )
 
         # Simulate health check
@@ -417,7 +427,7 @@ class FailoverOrchestrator:
             latency_ms=latency_ms,
             error_message=error_message,
             timestamp=datetime.utcnow(),
-            auto_failover=auto_failover
+            auto_failover=auto_failover,
         )
 
         instance["status"] = status
@@ -429,7 +439,7 @@ class FailoverOrchestrator:
         self,
         from_instance: str,
         to_instance: Optional[str] = None,
-        trigger: str = "manual"
+        trigger: str = "manual",
     ) -> FailoverEvent:
         """
         Perform failover from one instance to another.
@@ -459,7 +469,7 @@ class FailoverOrchestrator:
                 timestamp=start_time,
                 duration_seconds=0.0,
                 success=False,
-                rollback=False
+                rollback=False,
             )
 
         # Perform failover steps
@@ -482,7 +492,7 @@ class FailoverOrchestrator:
             timestamp=start_time,
             duration_seconds=duration,
             success=True,
-            rollback=False
+            rollback=False,
         )
 
         self.failover_history.append(event)
@@ -499,8 +509,7 @@ class FailoverOrchestrator:
         if health.auto_failover:
             # Auto-failover needed
             return await self.perform_failover(
-                from_instance=self.active_instance,
-                trigger="auto_health_check"
+                from_instance=self.active_instance, trigger="auto_health_check"
             )
 
         return None
@@ -553,7 +562,7 @@ class DisasterRecoveryOrchestrator:
         data_sources: List[str],
         backup_type: BackupType = BackupType.FULL,
         strategy: BackupStrategy = BackupStrategy.LOCAL,
-        retention_days: int = 30
+        retention_days: int = 30,
     ):
         """
         Schedule automated backups.
@@ -565,14 +574,16 @@ class DisasterRecoveryOrchestrator:
             strategy: Storage strategy
             retention_days: Retention period
         """
-        self.scheduled_backups.append({
-            "schedule": schedule,
-            "data_sources": data_sources,
-            "backup_type": backup_type,
-            "strategy": strategy,
-            "retention_days": retention_days,
-            "last_run": None
-        })
+        self.scheduled_backups.append(
+            {
+                "schedule": schedule,
+                "data_sources": data_sources,
+                "backup_type": backup_type,
+                "strategy": strategy,
+                "retention_days": retention_days,
+                "last_run": None,
+            }
+        )
 
     async def run_scheduled_backups(self) -> List[BackupMetadata]:
         """Execute all due scheduled backups."""
@@ -587,7 +598,7 @@ class DisasterRecoveryOrchestrator:
                     data_sources=schedule_config["data_sources"],
                     backup_type=schedule_config["backup_type"],
                     strategy=schedule_config["strategy"],
-                    retention_days=schedule_config["retention_days"]
+                    retention_days=schedule_config["retention_days"],
                 )
                 results.append(backup)
                 schedule_config["last_run"] = now
@@ -613,8 +624,7 @@ class DisasterRecoveryOrchestrator:
         return False
 
     async def test_disaster_recovery(
-        self,
-        scenario: str = "full_system_failure"
+        self, scenario: str = "full_system_failure"
     ) -> Dict:
         """
         Test disaster recovery procedures.
@@ -636,14 +646,13 @@ class DisasterRecoveryOrchestrator:
             steps.append("2. Creating backup...")
             backup = await self.backup_engine.create_backup(
                 data_sources=["database", "files", "configs"],
-                backup_type=BackupType.FULL
+                backup_type=BackupType.FULL,
             )
 
             # Simulate restore
             steps.append("3. Testing restore...")
             restore_result = await self.backup_engine.restore_backup(
-                backup_id=backup.backup_id,
-                verify=True
+                backup_id=backup.backup_id, verify=True
             )
 
             steps.append("4. Verifying recovery...")
@@ -656,8 +665,7 @@ class DisasterRecoveryOrchestrator:
 
             # Simulate failover
             failover_event = await self.failover.perform_failover(
-                from_instance="instance_1",
-                trigger="test"
+                from_instance="instance_1", trigger="test"
             )
 
             steps.append("3. Verifying failover...")
@@ -674,7 +682,7 @@ class DisasterRecoveryOrchestrator:
             "success": success,
             "duration_seconds": duration,
             "steps": steps,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     async def get_recovery_metrics(self) -> Dict:
@@ -682,27 +690,35 @@ class DisasterRecoveryOrchestrator:
         # Backup metrics
         total_backups = len(self.backup_engine.backup_history)
         recent_backups = [
-            b for b in self.backup_engine.backup_history
+            b
+            for b in self.backup_engine.backup_history
             if (datetime.utcnow() - b.timestamp).days <= 7
         ]
 
         total_backup_size = sum(b.size_bytes for b in self.backup_engine.backup_history)
         avg_compression = (
-            sum(b.compression_ratio for b in self.backup_engine.backup_history) / total_backups
-            if total_backups > 0 else 0.0
+            sum(b.compression_ratio for b in self.backup_engine.backup_history)
+            / total_backups
+            if total_backups > 0
+            else 0.0
         )
 
         # Failover metrics
         total_failovers = len(self.failover.failover_history)
-        successful_failovers = sum(1 for f in self.failover.failover_history if f.success)
+        successful_failovers = sum(
+            1 for f in self.failover.failover_history if f.success
+        )
         avg_failover_time = (
-            sum(f.duration_seconds for f in self.failover.failover_history) / total_failovers
-            if total_failovers > 0 else 0.0
+            sum(f.duration_seconds for f in self.failover.failover_history)
+            / total_failovers
+            if total_failovers > 0
+            else 0.0
         )
 
         # Health status
         healthy_instances = sum(
-            1 for data in self.failover.instances.values()
+            1
+            for data in self.failover.instances.values()
             if data["status"] == "healthy"
         )
 
@@ -712,18 +728,22 @@ class DisasterRecoveryOrchestrator:
                 "recent_backups_7d": len(recent_backups),
                 "total_size_bytes": total_backup_size,
                 "average_compression_ratio": avg_compression,
-                "encrypted_backups": sum(1 for b in self.backup_engine.backup_history if b.encryption_enabled)
+                "encrypted_backups": sum(
+                    1 for b in self.backup_engine.backup_history if b.encryption_enabled
+                ),
             },
             "failover_metrics": {
                 "total_failovers": total_failovers,
                 "successful_failovers": successful_failovers,
-                "success_rate": successful_failovers / total_failovers if total_failovers > 0 else 1.0,
-                "average_failover_time_seconds": avg_failover_time
+                "success_rate": successful_failovers / total_failovers
+                if total_failovers > 0
+                else 1.0,
+                "average_failover_time_seconds": avg_failover_time,
             },
             "current_status": {
                 "active_instance": self.failover.active_instance,
                 "healthy_instances": healthy_instances,
                 "total_instances": len(self.failover.instances),
-                "scheduled_backups": len(self.scheduled_backups)
-            }
+                "scheduled_backups": len(self.scheduled_backups),
+            },
         }
