@@ -16,6 +16,7 @@ import hashlib
 import json
 from src.bbb.bbb_security_suite import DeserializationSecurity
 from pathlib import Path
+from fastapi import HTTPException
 
 
 class BackupStrategy(str, Enum):
@@ -208,7 +209,7 @@ class BackupEngine:
         # Restore to target
         try:
             restored_sources = await self._restore_data(backup_data, target)
-        except (ValueError, json.JSONDecodeError) as e:
+        except (ValueError, json.JSONDecodeError, HTTPException) as e:
             return {
                 "success": False,
                 "error": f"Failed to restore backup: {e}",

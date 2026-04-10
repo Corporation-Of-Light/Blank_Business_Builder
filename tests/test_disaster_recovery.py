@@ -115,6 +115,24 @@ class TestBackupEngine:
         assert "not found" in result["error"].lower()
 
     @pytest.mark.asyncio
+    async def test_restore_backup_invalid_json_returns_error_dict(self):
+        """Tampered backup JSON should return a restore error instead of raising."""
+        engine = BackupEngine(base_path="./test_backups")
+        backup = await engine.create_backup(
+            data_sources=["database"],
+            backup_type=BackupType.FULL,
+            strategy=BackupStrategy.LOCAL,
+        )
+
+        Path(backup.location).write_text("{not-valid-json", encoding="utf-8")
+
+        result = await engine.restore_backup(backup.backup_id, verify=False)
+
+        assert result["success"] is False
+        assert result["backup_id"] == backup.backup_id
+        assert "Failed to restore backup" in result["error"]
+
+    @pytest.mark.asyncio
     async def test_multi_region_backup(self):
         """Test multi-region backup strategy."""
         engine = BackupEngine()
