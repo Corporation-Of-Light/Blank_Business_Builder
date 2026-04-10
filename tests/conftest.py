@@ -44,7 +44,11 @@ import logging
 app.dependency_overrides[get_db] = override_get_db
 
 # Create test client
-client = TestClient(app)
+@pytest.fixture
+def client():
+    """Provides a test client for making API requests."""
+    with TestClient(app) as c:
+        yield c
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -177,7 +181,6 @@ def pro_auth_token(pro_user):
 
 # Export commonly used fixtures and utilities
 __all__ = [
-    'client',
     'db_session',
     'sample_user',
     'pro_user',
