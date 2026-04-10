@@ -9,26 +9,44 @@ from blank_business_builder.main import app
 from blank_business_builder.database import Base, get_db, User
 
 # Import centralized test fixtures from conftest.py
-from .conftest import client
 
 @pytest.fixture
-def authenticated_user():
+def authenticated_user(client):
     """Create and return authenticated user with token."""
     response = client.post(
         "/api/auth/register",
         json={
             "email": "test@example.com",
-            "password": "testpass123",
+            "password": "Testpass123!",
             "full_name": "Test User"
         }
     )
     token = response.json()["access_token"]
+    client.post(
+        "/api/license/activate",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"tier": "pro"}
+    )
     return {"token": token, "email": "test@example.com"}
+
+@pytest.fixture
+def free_user(client):
+    """Create and return a free tier user with token."""
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "free@example.com",
+            "password": "Testpass123!",
+            "full_name": "Free User"
+        }
+    )
+    token = response.json()["access_token"]
+    return {"token": token, "email": "free@example.com"}
 
 class TestBusinessOperations:
     """Test business CRUD operations."""
 
-    def test_create_business(self, authenticated_user):
+    def test_create_business(self, client, authenticated_user):
         """Test creating a business."""
         response = client.post(
             "/api/businesses",
@@ -48,7 +66,7 @@ class TestBusinessOperations:
         assert data["status"] == "active"
         assert "id" in data
 
-    def test_create_business_unauthorized(self):
+    def test_create_business_unauthorized(self, client):
         """Test creating business without authentication."""
         response = client.post(
             "/api/businesses",
@@ -59,9 +77,9 @@ class TestBusinessOperations:
             }
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 401
 
-    def test_list_businesses(self, authenticated_user):
+    def test_list_businesses(self, client, authenticated_user):
         """Test listing user's businesses."""
         # Create multiple businesses
         for i in range(3):
@@ -86,7 +104,7 @@ class TestBusinessOperations:
         assert len(data) == 3
         assert all("business_name" in b for b in data)
 
-    def test_list_businesses_empty(self, authenticated_user):
+    def test_list_businesses_empty(self, client, authenticated_user):
         """Test listing businesses when user has none."""
         response = client.get(
             "/api/businesses",
@@ -97,7 +115,7 @@ class TestBusinessOperations:
         data = response.json()
         assert len(data) == 0
 
-    def test_business_limit_free_tier(self, authenticated_user):
+    def test_business_limit_free_tier(self, client, free_user):
         """Test business creation limit for free tier."""
         # Free tier allows 1 business
         response1 = client.post(
@@ -107,7 +125,7 @@ class TestBusinessOperations:
                 "industry": "Technology",
                 "description": "First business"
             },
-            headers={"Authorization": f"Bearer {authenticated_user['token']}"}
+            headers={"Authorization": f"Bearer {free_user['token']}"}
         )
         assert response1.status_code == 200
 
@@ -119,7 +137,7 @@ class TestBusinessOperations:
                 "industry": "Technology",
                 "description": "Second business"
             },
-            headers={"Authorization": f"Bearer {authenticated_user['token']}"}
+            headers={"Authorization": f"Bearer {free_user['token']}"}
         )
         assert response2.status_code == 403
         assert "limit" in response2.json()["detail"].lower()
@@ -127,7 +145,7 @@ class TestBusinessOperations:
 class TestAIGeneration:
     """Test AI-powered content generation."""
 
-    def test_generate_business_plan_unauthorized(self):
+    def test_generate_business_plan_unauthorized(self, client):
         """Test business plan generation without auth."""
         response = client.post(
             "/api/ai/generate-business-plan",
@@ -137,9 +155,9 @@ class TestAIGeneration:
             }
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 401
 
-    def test_generate_marketing_copy_unauthorized(self):
+    def test_generate_marketing_copy_unauthorized(self, client):
         """Test marketing copy generation without auth."""
         response = client.post(
             "/api/ai/generate-marketing-copy",
@@ -151,9 +169,9 @@ class TestAIGeneration:
             }
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 401
 
-    def test_generate_email_campaign_unauthorized(self):
+    def test_generate_email_campaign_unauthorized(self, client):
         """Test email campaign generation without auth."""
         response = client.post(
             "/api/ai/generate-email-campaign",
@@ -165,12 +183,12 @@ class TestAIGeneration:
             }
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 401
 
 class TestBusinessValidation:
     """Test business data validation."""
 
-    def test_create_business_missing_fields(self, authenticated_user):
+    def test_create_business_missing_fields(self, client, authenticated_user):
         """Test business creation with missing required fields."""
         response = client.post(
             "/api/businesses",
@@ -183,7 +201,7 @@ class TestBusinessValidation:
 
         assert response.status_code == 422  # Validation error
 
-    def test_create_business_invalid_url(self, authenticated_user):
+    def test_create_business_invalid_url(self, client, authenticated_user):
         """Test business creation with invalid website URL."""
         response = client.post(
             "/api/businesses",
