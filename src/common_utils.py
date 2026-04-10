@@ -28,7 +28,7 @@ def launch_gui(gui_dir: Path) -> None:
     remaining = [name for name in available_html if name not in preferred]
     ordered_screens = preferred + remaining
 
-    walkthrough_path = gui_dir / walkthrough_file
+    walkthrough_path = gui_dir.parent / "common_gui" / walkthrough_file
     if walkthrough_path.exists():
         query = urlencode({"screens": json.dumps(ordered_screens)})
         webbrowser.open(f"file://{walkthrough_path}?{query}")
