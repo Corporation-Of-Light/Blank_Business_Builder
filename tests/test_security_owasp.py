@@ -198,7 +198,7 @@ class TestSensitiveDataExposure:
 
         # Password should not appear in plain text in any response
         response_text = response.text.lower()
-        assert "strongpass123!" not in response_text, "Password should not appear in plain text"
+        assert STRONG_PWD.lower() not in response_text, "Password should not appear in plain text"
 
     def test_https_enforcement(self):
         """Test HTTPS enforcement."""
