@@ -206,7 +206,14 @@ class BackupEngine:
         backup_data = self._decompress(backup_data)
 
         # Restore to target
-        restored_sources = await self._restore_data(backup_data, target)
+        try:
+            restored_sources = await self._restore_data(backup_data, target)
+        except (ValueError, json.JSONDecodeError) as e:
+            return {
+                "success": False,
+                "error": f"Failed to restore backup: {e}",
+                "backup_id": backup_id,
+            }
 
         return {
             "success": True,
@@ -320,6 +327,8 @@ class BackupEngine:
         # - Apply configurations
 
         backup_data = DeserializationSecurity.safe_json_loads(data.decode())
+        if not isinstance(backup_data, dict):
+            raise ValueError("Invalid backup data format: expected a JSON object")
         return backup_data.get("sources", [])
 
     def _generate_backup_id(self) -> str:
