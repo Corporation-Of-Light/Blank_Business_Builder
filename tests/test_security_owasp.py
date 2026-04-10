@@ -433,6 +433,13 @@ class TestXSSPrevention:
 
             # JSON API should handle XSS payloads without crashing
             assert response.status_code in [200, 400, 403, 422], f"XSS payload should be handled safely: {payload}"
+            if response.status_code == 200:
+                data = response.json()
+                if "<script" in payload or "onerror" in payload:
+                    assert data["business_name"] != payload
+                response_text = response.text.lower()
+                assert "<script" not in response_text, "Returned content should not contain script tags"
+                assert "onerror" not in response_text, "Returned content should not contain onerror attributes"
 
     def test_dom_based_xss_prevention(self):
         """Test DOM-based XSS prevention."""
@@ -489,7 +496,7 @@ class TestSecurityMisconfiguration:
 
                 # Should not expose sensitive information
                 sensitive_terms = [
-                    "secret_key", "database_url",
+                    "secret_key", "database_url", "token",
                     "traceback", "stack trace", "hashed_password"
                 ]
 
