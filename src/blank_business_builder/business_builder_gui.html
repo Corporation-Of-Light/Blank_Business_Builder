@@ -257,6 +257,15 @@
             background: rgba(255, 255, 255, 0.02);
         }
 
+        .results-table tr.selectable {
+            cursor: pointer;
+        }
+
+        .results-table tr.selected {
+            background: rgba(0, 255, 136, 0.12);
+            border-left: 3px solid var(--primary);
+        }
+
         .probability-bar {
             height: 8px;
             background: rgba(255, 255, 255, 0.1);
@@ -387,11 +396,11 @@
         </header>
 
         <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab('onboarding')">📝 Onboarding</button>
-            <button class="nav-tab" onclick="switchTab('explore')">🔍 Explore Ideas</button>
-            <button class="nav-tab" onclick="switchTab('optimize')">⚡ Optimize</button>
-            <button class="nav-tab" onclick="switchTab('plan')">📊 Business Plan</button>
-            <button class="nav-tab" onclick="switchTab('financials')">💰 Financials</button>
+            <button class="nav-tab active" data-tab="onboarding" onclick="switchTab('onboarding', this)">📝 Onboarding</button>
+            <button class="nav-tab" data-tab="explore" onclick="switchTab('explore', this)">🔍 Explore Ideas</button>
+            <button class="nav-tab" data-tab="optimize" onclick="switchTab('optimize', this)">⚡ Optimize</button>
+            <button class="nav-tab" data-tab="plan" onclick="switchTab('plan', this)">📊 Business Plan</button>
+            <button class="nav-tab" data-tab="financials" onclick="switchTab('financials', this)">💰 Financials</button>
         </div>
 
         <!-- Onboarding Tab -->
@@ -562,7 +571,7 @@
         let selectedIdea = null;
         let optimizationResults = [];
 
-        function switchTab(tabName) {
+        function switchTab(tabName, triggerButton = null) {
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -571,7 +580,11 @@
             });
 
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+
+            const tabButton = triggerButton || document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+            if (tabButton) {
+                tabButton.classList.add('active');
+            }
         }
 
         // Handle onboarding form submission
@@ -593,7 +606,6 @@
 
             // Switch to optimize tab
             switchTab('optimize');
-            document.querySelectorAll('.nav-tab')[2].classList.add('active');
         });
 
         function runOptimization() {
@@ -654,7 +666,7 @@
                     ? '<span class="badge badge-warning">Meets Floor</span>'
                     : '<span class="badge badge-error">Below Floor</span>';
 
-                html += `<tr onclick="selectBusinessForPlan('${result.idea.name}')">
+                html += `<tr class="selectable" data-business="${result.idea.name}" onclick="selectBusinessForPlan('${result.idea.name}', true)">
                     <td><strong>${result.idea.name}</strong></td>
                     <td><span class="idea-industry">${result.idea.industry}</span></td>
                     <td><strong>$${result.three_month_profit.toLocaleString()}</strong></td>
@@ -680,17 +692,24 @@
             container.innerHTML = html;
 
             if (optimizationResults.length > 0) {
-                selectBusinessForPlan(optimizationResults[0].idea.name);
+                selectBusinessForPlan(optimizationResults[0].idea.name, false);
             }
         }
 
-        function selectBusinessForPlan(businessName) {
+        function selectBusinessForPlan(businessName, shouldNavigate = false) {
             const result = optimizationResults.find(r => r.idea.name === businessName);
             if (!result) return;
 
             selectedIdea = result;
+            document.querySelectorAll('#optimizationResults tr.selectable').forEach((row) => {
+                row.classList.toggle('selected', row.dataset.business === businessName);
+            });
             generateBusinessPlan();
             generateFinancials();
+
+            if (shouldNavigate) {
+                switchTab('plan');
+            }
         }
 
         function generateBusinessPlan() {
