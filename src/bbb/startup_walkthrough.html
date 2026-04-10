@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBB Startup Walkthrough</title>
+    <style>
+        :root {
+            --bg: #070b1c;
+            --panel: #101835;
+            --panel-alt: #141f43;
+            --text: #e8edff;
+            --muted: #9fb0e6;
+            --accent: #6be5ff;
+            --accent-2: #6dffb9;
+            --border: #2a3a73;
+            --danger: #ff8f8f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 15%, #16244d, var(--bg));
+            color: var(--text);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .shell {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            gap: 16px;
+        }
+
+        .panel {
+            border: 1px solid var(--border);
+            background: linear-gradient(160deg, rgba(16, 24, 53, 0.95), rgba(10, 16, 36, 0.95));
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.4;
+            margin-bottom: 14px;
+        }
+
+        .meta {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 0.92rem;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .meta-row span:last-child {
+            color: var(--accent-2);
+            font-weight: 600;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        button {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--panel-alt);
+            color: var(--text);
+            padding: 9px 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            border-color: var(--accent);
+        }
+
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .primary {
+            background: linear-gradient(135deg, rgba(109, 255, 185, 0.2), rgba(107, 229, 255, 0.22));
+            border-color: rgba(107, 229, 255, 0.5);
+        }
+
+        .secondary {
+            grid-column: span 2;
+        }
+
+        .autoplay {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            background: rgba(20, 31, 67, 0.45);
+        }
+
+        .autoplay label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .autoplay input[type="number"] {
+            width: 88px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel);
+            color: var(--text);
+            padding: 6px 8px;
+        }
+
+        .screen-list {
+            max-height: 55vh;
+            overflow-y: auto;
+            display: grid;
+            gap: 8px;
+        }
+
+        .screen-link {
+            width: 100%;
+            text-align: left;
+            padding: 9px 10px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: rgba(20, 31, 67, 0.55);
+            color: var(--text);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .screen-link.active {
+            border-color: var(--accent);
+            background: rgba(107, 229, 255, 0.15);
+        }
+
+        .viewer {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .viewer-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            background: rgba(20, 31, 67, 0.35);
+        }
+
+        .viewer-title {
+            font-weight: 700;
+            color: var(--accent-2);
+        }
+
+        .viewer-note {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        iframe {
+            width: 100%;
+            flex: 1;
+            min-height: 72vh;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .warning {
+            color: var(--danger);
+            font-size: 0.92rem;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 980px) {
+            .shell {
+                grid-template-columns: 1fr;
+            }
+            .screen-list {
+                max-height: 220px;
+            }
+            iframe {
+                min-height: 60vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <section class="panel">
+            <h1>Startup Walkthrough</h1>
+            <p class="subtitle">
+                On boot, this guides users through every available UI screen in sequence.
+                New Stitch-exported screens dropped in this folder are automatically included.
+            </p>
+
+            <div class="meta">
+                <div class="meta-row"><span>Current step</span><span id="stepText">0 / 0</span></div>
+                <div class="meta-row"><span>Current screen</span><span id="screenName">-</span></div>
+            </div>
+
+            <div class="controls">
+                <button id="prevBtn">Previous</button>
+                <button id="nextBtn" class="primary">Next</button>
+                <button id="restartBtn" class="secondary">Restart walkthrough</button>
+            </div>
+
+            <div class="autoplay">
+                <label><input type="checkbox" id="autoPlay"> Auto-advance</label>
+                <label>Sec: <input type="number" id="autoSeconds" min="2" max="60" value="7"></label>
+            </div>
+
+            <div id="screenList" class="screen-list"></div>
+            <p id="warning" class="warning" hidden></p>
+        </section>
+
+        <section class="viewer">
+            <div class="viewer-header">
+                <div class="viewer-title">Boot Walkthrough Player</div>
+                <div class="viewer-note">Tip: use direct screen links to jump into specific app areas.</div>
+            </div>
+            <iframe id="screenFrame" title="Screen walkthrough"></iframe>
+        </section>
+    </main>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const requestedScreens = (() => {
+            try {
+                const raw = params.get("screens");
+                if (!raw) return [];
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch {
+                return [];
+            }
+        })();
+
+        const fallback = [
+            "dark-surreal-wizard.html",
+            "business_builder_gui.html",
+            "dashboard.html",
+            "quantum_features_dashboard.html",
+            "sip_phone_dashboard.html"
+        ];
+
+        const screens = requestedScreens.length ? requestedScreens : fallback;
+        const frame = document.getElementById("screenFrame");
+        const stepText = document.getElementById("stepText");
+        const screenName = document.getElementById("screenName");
+        const warning = document.getElementById("warning");
+        const list = document.getElementById("screenList");
+
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const restartBtn = document.getElementById("restartBtn");
+        const autoPlay = document.getElementById("autoPlay");
+        const autoSeconds = document.getElementById("autoSeconds");
+
+        let index = 0;
+        let timerId = null;
+
+        function clearTimer() {
+            if (timerId) {
+                clearTimeout(timerId);
+                timerId = null;
+            }
+        }
+
+        function scheduleAuto() {
+            clearTimer();
+            if (!autoPlay.checked || screens.length <= 1) return;
+            const seconds = Math.max(2, Number(autoSeconds.value) || 7);
+            timerId = setTimeout(() => {
+                const next = (index + 1) % screens.length;
+                goTo(next);
+            }, seconds * 1000);
+        }
+
+        function updateButtons() {
+            prevBtn.disabled = screens.length <= 1;
+            nextBtn.disabled = screens.length <= 1;
+        }
+
+        function renderList() {
+            list.innerHTML = "";
+            screens.forEach((name, i) => {
+                const btn = document.createElement("button");
+                btn.className = "screen-link";
+                if (i === index) btn.classList.add("active");
+                btn.textContent = `${i + 1}. ${name}`;
+                btn.addEventListener("click", () => goTo(i));
+                list.appendChild(btn);
+            });
+        }
+
+        function goTo(i) {
+            index = i;
+            const name = screens[index];
+            frame.src = name;
+            stepText.textContent = `${index + 1} / ${screens.length}`;
+            screenName.textContent = name;
+            renderList();
+            scheduleAuto();
+        }
+
+        prevBtn.addEventListener("click", () => {
+            if (!screens.length) return;
+            const prev = (index - 1 + screens.length) % screens.length;
+            goTo(prev);
+        });
+
+        nextBtn.addEventListener("click", () => {
+            if (!screens.length) return;
+            const next = (index + 1) % screens.length;
+            goTo(next);
+        });
+
+        restartBtn.addEventListener("click", () => goTo(0));
+        autoPlay.addEventListener("change", scheduleAuto);
+        autoSeconds.addEventListener("change", scheduleAuto);
+
+        if (!screens.length) {
+            warning.hidden = false;
+            warning.textContent = "No screens found. Add HTML screens to this folder, then relaunch.";
+            stepText.textContent = "0 / 0";
+            screenName.textContent = "none";
+            updateButtons();
+        } else {
+            updateButtons();
+            goTo(0);
+        }
+    </script>
+</body>
+</html>

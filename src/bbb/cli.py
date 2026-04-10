@@ -8,6 +8,7 @@ import webbrowser
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 
 from .onboarding import OnboardingAssistant
 
@@ -25,23 +26,42 @@ def serialize(obj: Any) -> Any:
 
 
 def launch_gui() -> None:
-    """Launch the Business Builder GUI in default browser."""
+    """Launch the startup walkthrough in default browser."""
     gui_dir = Path(__file__).parent
-    candidates = [
-        ("dark-surreal-wizard.html", "dark surreal wizard"),
-        ("business_builder_gui.html", "classic interface"),
+    walkthrough_file = "startup_walkthrough.html"
+    preferred_order = [
+        "dark-surreal-wizard.html",
+        "business_builder_gui.html",
+        "dashboard.html",
+        "quantum_features_dashboard.html",
+        "sip_phone_dashboard.html",
     ]
 
-    for filename, label in candidates:
-        gui_path = gui_dir / filename
-        if gui_path.exists():
-            webbrowser.open(f"file://{gui_path}")
-            print(f"[info] Business Builder {label} launched: {gui_path}")
-            print("[info] The GUI is running in your browser.")
-            return
+    available_html = [
+        path.name for path in sorted(gui_dir.glob("*.html"))
+        if path.name != walkthrough_file
+    ]
+    if not available_html:
+        print(f"[error] No GUI screens found in {gui_dir}")
+        return
 
-    checked = ", ".join(name for name, _ in candidates)
-    print(f"[error] GUI file not found. Checked: {checked}")
+    preferred = [name for name in preferred_order if name in available_html]
+    remaining = [name for name in available_html if name not in preferred]
+    ordered_screens = preferred + remaining
+
+    walkthrough_path = gui_dir / walkthrough_file
+    if walkthrough_path.exists():
+        query = urlencode({"screens": json.dumps(ordered_screens)})
+        webbrowser.open(f"file://{walkthrough_path}?{query}")
+        print(
+            f"[info] Startup walkthrough launched with {len(ordered_screens)} screen(s): {walkthrough_path}"
+        )
+        print("[info] Step through screens in order, then open any screen directly.")
+        return
+
+    first_screen = gui_dir / ordered_screens[0]
+    webbrowser.open(f"file://{first_screen}")
+    print(f"[info] Walkthrough file missing; launched first screen instead: {first_screen}")
 
 
 def main() -> None:
