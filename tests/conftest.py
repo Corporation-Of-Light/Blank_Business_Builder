@@ -38,11 +38,17 @@ def override_get_db():
         db.close()
 
 
+import logging
+
 # Override the app's database dependency
 app.dependency_overrides[get_db] = override_get_db
 
 # Create test client
-client = TestClient(app)
+@pytest.fixture
+def client():
+    """Provides a test client for making API requests."""
+    with TestClient(app) as c:
+        yield c
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -93,12 +99,6 @@ def reset_app_state():
     yield
     # Clear any app-level caches or state here if needed
     pass
-
-
-@pytest.fixture
-def test_client():
-    """Provide a test client for making HTTP requests."""
-    return client
 
 
 @pytest.fixture
@@ -181,8 +181,6 @@ def pro_auth_token(pro_user):
 
 # Export commonly used fixtures and utilities
 __all__ = [
-    'client',
-    'test_client',
     'db_session',
     'sample_user',
     'pro_user',

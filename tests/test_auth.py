@@ -17,19 +17,18 @@ from blank_business_builder.database import User
 
 # Import centralized test fixtures from conftest.py
 # client, db_session, sample_user, pro_user are provided by conftest
-from .conftest import client
 
 
 class TestAuthentication:
     """Test authentication endpoints."""
 
-    def test_register_user(self):
+    def test_register_user(self, client):
         """Test user registration."""
         response = client.post(
             "/api/auth/register",
             json={
                 "email": "test@example.com",
-                "password": "testpass123",
+                "password": "Testpass123!",
                 "full_name": "Test User"
             }
         )
@@ -40,14 +39,14 @@ class TestAuthentication:
         assert "refresh_token" in data
         assert data["token_type"] == "bearer"
 
-    def test_register_duplicate_email(self):
+    def test_register_duplicate_email(self, client):
         """Test registration with duplicate email."""
         # First registration
         client.post(
             "/api/auth/register",
             json={
                 "email": "test@example.com",
-                "password": "testpass123"
+                "password": "Testpass123!"
             }
         )
 
@@ -56,21 +55,21 @@ class TestAuthentication:
             "/api/auth/register",
             json={
                 "email": "test@example.com",
-                "password": "testpass456"
+                "password": "Testpass456!"
             }
         )
 
         assert response.status_code == 400
         assert "already registered" in response.json()["detail"].lower()
 
-    def test_login_success(self):
+    def test_login_success(self, client):
         """Test successful login."""
         # Register user
         client.post(
             "/api/auth/register",
             json={
                 "email": "test@example.com",
-                "password": "testpass123"
+                "password": "Testpass123!"
             }
         )
 
@@ -79,7 +78,7 @@ class TestAuthentication:
             "/api/auth/login",
             json={
                 "email": "test@example.com",
-                "password": "testpass123"
+                "password": "Testpass123!"
             }
         )
 
@@ -88,14 +87,14 @@ class TestAuthentication:
         assert "access_token" in data
         assert "refresh_token" in data
 
-    def test_login_invalid_password(self):
+    def test_login_invalid_password(self, client):
         """Test login with invalid password."""
         # Register user
         client.post(
             "/api/auth/register",
             json={
                 "email": "test@example.com",
-                "password": "testpass123"
+                "password": "Testpass123!"
             }
         )
 
@@ -111,26 +110,26 @@ class TestAuthentication:
         assert response.status_code == 401
         assert "incorrect" in response.json()["detail"].lower()
 
-    def test_login_nonexistent_user(self):
+    def test_login_nonexistent_user(self, client):
         """Test login with nonexistent user."""
         response = client.post(
             "/api/auth/login",
             json={
                 "email": "nonexistent@example.com",
-                "password": "testpass123"
+                "password": "Testpass123!"
             }
         )
 
         assert response.status_code == 401
 
-    def test_get_current_user(self):
+    def test_get_current_user(self, client):
         """Test getting current user information."""
         # Register and get token
         register_response = client.post(
             "/api/auth/register",
             json={
                 "email": "test@example.com",
-                "password": "testpass123",
+                "password": "Testpass123!",
                 "full_name": "Test User"
             }
         )
@@ -148,7 +147,7 @@ class TestAuthentication:
         assert data["full_name"] == "Test User"
         assert data["subscription_tier"] == "free"
 
-    def test_get_current_user_invalid_token(self):
+    def test_get_current_user_invalid_token(self, client):
         """Test getting user with invalid token."""
         response = client.get(
             "/api/auth/me",
@@ -298,13 +297,13 @@ def UserFactory(**overrides):
 class TestLicensingFlows:
     """Test license and tier enforcement."""
 
-    def test_accept_revenue_share_unlocks_access(self):
+    def test_accept_revenue_share_unlocks_access(self, client):
         """New users can accept revenue share to leave trial mode."""
         register_response = client.post(
             "/api/auth/register",
             json={
                 "email": "share@example.com",
-                "password": "testpass123",
+                "password": "Testpass123!",
                 "full_name": "Share User"
             }
         )
@@ -328,13 +327,13 @@ class TestLicensingFlows:
         assert status_response.status_code == 200
         assert status_response.json()["license_status"] == "revenue_share"
 
-    def test_quantum_endpoints_require_pro_tier(self):
+    def test_quantum_endpoints_require_pro_tier(self, client):
         """Quantum API should reject Starter/trial users."""
         register_response = client.post(
             "/api/auth/register",
             json={
                 "email": "quantum@example.com",
-                "password": "testpass123"
+                "password": "Testpass123!"
             }
         )
         token = register_response.json()["access_token"]
@@ -346,13 +345,13 @@ class TestLicensingFlows:
         assert response.status_code == 403
         assert "Upgrade to Pro" in response.json()["detail"]
 
-    def test_activate_license_promotes_subscription(self):
+    def test_activate_license_promotes_subscription(self, client):
         """Users can activate paid licenses and change subscription tier."""
         register_response = client.post(
             "/api/auth/register",
             json={
                 "email": "pro@example.com",
-                "password": "testpass123"
+                "password": "Testpass123!"
             }
         )
         token = register_response.json()["access_token"]
