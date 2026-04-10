@@ -51,11 +51,9 @@ cryptography==42.0.0
 pydantic==2.5.3
 pydantic-settings==2.1.0
 
-# Quantum Features Dependencies
 numpy==1.26.3
 scipy==1.11.4
 scikit-learn==1.4.0
-gzip  # Built-in Python library
 
 # Development
 black==24.1.1
